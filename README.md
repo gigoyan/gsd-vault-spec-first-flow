@@ -133,15 +133,9 @@ GSD is designed to be updated from a reusable blueprint without overwriting proj
 
 Use:
 
-    $gsd-audit-blueprint-drift
+    $gsd-update-blueprint <TARGET_REPOSITORY_PATH>
 
-to check whether a project repository has drifted from the blueprint.
-
-Use:
-
-    $gsd-sync-blueprint
-
-to install or update reusable GSD files from the blueprint.
+to audit a project repository from the current reusable blueprint source and then, only after exact `sync approved` confirmation, install or update reusable GSD files from the blueprint.
 
 Blueprint sync updates reusable assets such as skills, templates, managed `AGENTS.md` blocks, and the reusable guidance blocks in hybrid starter surfaces.
 

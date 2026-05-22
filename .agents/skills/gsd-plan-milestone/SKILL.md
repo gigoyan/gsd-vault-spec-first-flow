@@ -7,6 +7,7 @@ description: Turn the next meaningful goal into one milestone file and one bound
 
 Plan the next unit of non-trivial work without starting implementation.
 Use this skill to translate a goal into one milestone file and one executable phase, with synchronized roadmap and state updates. When an active milestone is already in progress, this skill plans the next bounded phase inside that milestone instead of creating a replacement milestone.
+Standalone planning and normal delegated planning remain planning-only.
 
 ## Workflow
 1. Read [PROJECT.md](../../../PROJECT.md), [`.planning/REQUIREMENTS.md`](../../../.planning/REQUIREMENTS.md), [`.planning/ROADMAP.md`](../../../.planning/ROADMAP.md), [`.planning/CODEBASE_MAP.md`](../../../.planning/CODEBASE_MAP.md), and [`.planning/STATE.md`](../../../.planning/STATE.md).
@@ -40,7 +41,7 @@ Use this skill to translate a goal into one milestone file and one executable ph
 
 ## Rules
 - Keep the milestone meaningful but not broad enough to hide multiple unrelated efforts.
-- If the requested work is to update installed GSD blueprint files across repositories, route to `gsd-sync-blueprint` or `gsd-audit-blueprint-drift` instead of creating a normal application implementation milestone.
+- If the requested work is to audit, install, or update installed GSD blueprint files across repositories, route to `gsd-update-blueprint <TARGET_REPOSITORY_PATH>` instead of creating a normal application implementation milestone.
 - Enforce the Spec-First gate for non-trivial work. Do not plan implementation when the current project's Project Idea Document, Technical Specification, or stack-selection/configuration-package planning artifact is missing, stale, or materially underspecified.
 - Exception: if the active repository is the reusable GSD blueprint and the requested work is blueprint-self-improvement, use the active milestone, completed phase verifications, and current repo-local planning artifacts as the governing readiness context instead of requiring a project-specific Project Idea Document, Technical Specification, and stack-selection/configuration-package artifact.
 - Do not block blueprint-self-improvement phases on missing project-specific readiness artifacts when the active milestone already defines the blueprint-improvement scope and acceptance criteria.
@@ -59,7 +60,11 @@ Use this skill to translate a goal into one milestone file and one executable ph
 - Use UI options whenever remaining user collaboration can reasonably be expressed as structured choices, recommendations, or confirmations.
 - Preserve serious deep-mapping intent explicitly so later routing can create dedicated transformation-ready mapping work when needed.
 - When a serious-mapping handoff already exists in [`.planning/CODEBASE_MAP.md`](../../../.planning/CODEBASE_MAP.md), do not replace it with a generic milestone summary. Carry its named transformation goal, large-structured-mapping shape, and exact next-session prompt forward into the planned milestone and first phase unless newer `Confirmed` evidence justifies a narrower correction.
-- When invoked as a delegated child under `$gsd-run-milestone`, perform planning only. Do not orchestrate, do not delegate, and do not continue into execution or verification.
+- Standalone planning remains planning-only. Normal delegated planning remains planning-only.
+- Narrow exception: when used inside the explicit `$gsd-run-milestone` verification-and-next-phase-planning composite step, planning may run after successful verification in the same child response only to create the next bounded phase in the same active milestone.
+- In the composite step, do not create a replacement milestone unless the existing planning rules already require that outcome.
+- In the composite step, do not execute or verify anything after creating the next phase.
+- When invoked as a delegated child under `$gsd-run-milestone` without the explicit composite assignment, perform planning only. Do not orchestrate, do not delegate, and do not continue into execution or verification.
 - As a delegated child, do not call `spawn_agent`, `send_input`, `wait_agent`, or `close_agent`.
 - Define validation before implementation. Prefer the most relevant available test level: unit, integration, API or contract, regression, characterization, or smoke or manual fallback when automation is impractical.
 - Specify which tests or checks should be created or updated first, or record the closest realistic safeguard when test-first is impractical.

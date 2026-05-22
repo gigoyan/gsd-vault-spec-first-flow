@@ -6,29 +6,32 @@ description: Orchestrate an entire active milestone from the root session by del
 # GSD Run Milestone
 
 Use the root session as a milestone orchestrator.
-This skill is for user-requested milestone automation where the main session should coordinate the full planning -> execution -> verification loop across multiple phases without doing the phase work itself.
+This skill is for user-requested milestone automation where the main session should coordinate the full planning -> execution -> verification-plus-next-phase-planning loop across multiple phases without doing the phase work itself.
 
 ## Workflow
 1. Read [PROJECT.md](../../../PROJECT.md), [`.planning/STATE.md`](../../../.planning/STATE.md), and the active milestone or phase file named in state.
-2. Determine the correct immediate GSD action from state and artifacts:
-   - no active milestone or no active phase for a needed milestone step: `$gsd-plan-milestone`
-   - active phase ready to build: `$gsd-execute-phase`
-   - active phase implemented and awaiting review: `$gsd-verify-phase`
-3. Choose the child role from the immediate GSD step plus the current phase domain and selected stack context already established by repo-local planning artifacts. Keep that role choice root-owned, stack-agnostic at the blueprint level, and constrained to one bounded delegated step.
-4. Read `.planning/CONTEXT_INDEX.md` when available and pass only the relevant context-routing section, routing row, module card, or phase `Context Routing` summary to the delegated child. Do not pass the full repository map unless the delegated step genuinely requires it.
-5. Spawn exactly one bounded sub-agent for that step. The root session should pass only the minimal prompt and required file references, keep `fork_context: false` by default, set `model: "gpt-5.4"` and `reasoning_effort: "medium"` on the spawn unless the user explicitly overrides either setting, wait for the result, and not perform the delegated work itself. If the root session needs prior durable context to route correctly, it may request a narrow `gsd-memory-lookup` context pack before spawning, but it still remains the only orchestrator.
-6. Read the child result and route only from explicit response signals:
+2. Determine the correct immediate delegated action from state and artifacts:
+   - no active milestone or no active phase for a needed milestone step: spawn one planning child for `$gsd-plan-milestone`
+   - active phase ready to build: spawn one execution child for `$gsd-execute-phase`
+   - active phase implemented and awaiting review: spawn one verification-and-next-phase-planning child
+3. For each active phase, use at most two children in sequence:
+   - one execution child that performs `$gsd-execute-phase` only
+   - one verification-and-next-phase-planning child that verifies the active phase using `$gsd-verify-phase` rules, and only after a passing verification may create the next bounded phase in the same active milestone using `$gsd-plan-milestone` rules
+4. Choose the child role from the immediate delegated action plus the current phase domain and selected stack context already established by repo-local planning artifacts. Keep that role choice root-owned, stack-agnostic at the blueprint level, and constrained to the assigned planning, execution, or verification-and-next-phase-planning child step.
+5. Read `.planning/CONTEXT_INDEX.md` when available and pass only the relevant context-routing section, routing row, module card, or phase `Context Routing` summary to the delegated child. Do not pass the full repository map unless the delegated step genuinely requires it.
+6. Spawn exactly one bounded sub-agent for the next child action. The root session should pass only the minimal prompt and required file references, keep `fork_context: false` by default, set `model: "gpt-5.4"` and `reasoning_effort: "medium"` on the spawn unless the user explicitly overrides either setting, wait for the result, and not perform the delegated work itself. If the root session needs prior durable context to route correctly, it may request a narrow `gsd-memory-lookup` context pack before spawning, but it still remains the only orchestrator.
+7. Read the child result and route only from explicit response signals:
    - `Phase Status`
    - `Milestone Status`
    - `Next-Step Prompt`
-7. Continue spawning one next sub-agent at a time while `Milestone Status` is `in_progress`. If a child result or stale state requires durable context to route safely, refresh the narrow memory context pack before the next loop; do not infer routing from memory alone.
-8. Stop only when a child result explicitly reports `Milestone Status: completed`, or when the child result says no automatic next-step prompt applies and the next action is genuinely unclear.
+8. Continue spawning the next child action while `Milestone Status` is `in_progress`: execution for the active phase, then verification-and-next-phase-planning for that same phase. If a child result or stale state requires durable context to route safely, refresh the narrow memory context pack before the next loop; do not infer routing from memory alone.
+9. Stop only when a child result explicitly reports `Milestone Status: completed`, or when the child result says no automatic next-step prompt applies and the next action is genuinely unclear.
 
 ## Rules
 - This skill requires an explicit user request for subagent-driven milestone automation.
 - Keep the root session as manager. Do not let child agents recursively fan out unless the environment is intentionally configured for deeper delegation.
 - Keep the root session at high reasoning for milestone orchestration. Do not inherit high reasoning into sub-agents by default.
-- For every planning, execution, and verification child, call `spawn_agent(..., model="gpt-5.4", reasoning_effort="medium")` unless the user explicitly asks for a different child model or child reasoning level.
+- For every planning, execution, and verification-and-next-phase-planning child, call `spawn_agent(..., model="gpt-5.4", reasoning_effort="medium")` unless the user explicitly asks for a different child model or child reasoning level.
 - Use `fork_context: false` for child spawns unless the delegated step truly cannot proceed without full thread history.
 - Pass only the minimum step-specific instructions and artifact references needed for the delegated skill. Do not hand the child the full milestone loop responsibility.
 - The root orchestrator should use `.planning/CONTEXT_INDEX.md` to keep child prompts narrow.
@@ -36,6 +39,9 @@ This skill is for user-requested milestone automation where the main session sho
 - Do not hand child agents the full codebase map or broad repo-discovery task when the context index already identifies start-here paths and validation routes.
 - If a child reports broad scanning caused by missing or stale routing guidance, the root should route to `$gsd-refresh-context-index` when that is the clear next recovery action.
 - The root session must never tell a child to spawn, wait for, route to, or manage other agents.
+- The verification-and-next-phase-planning child is the only allowed composite child. It may create the next bounded phase only when verification passes and the milestone remains incomplete.
+- The composite child must not create the next phase on `fail`, `partial`, blocked verification, or completed milestone.
+- The composite child must never execute the newly created phase, continue the milestone loop, or choose another delegated step after creating the next phase.
 - Root-owned role selection may use the current phase domain and selected stack context from planning artifacts, but children must not reinterpret that context to widen scope or self-select a different role.
 - Memory lookup is advisory for routing context only; it never replaces explicit `Phase Status`, `Milestone Status`, or `Next-Step Prompt` text.
 - When the root session needs prior durable context to route safely, it may request `gsd-memory-lookup`, but the lookup must be scoped to the active repository namespace:
@@ -43,7 +49,7 @@ This skill is for user-requested milestone automation where the main session sho
     projects/<vault-project-id>/
 
 - The root orchestrator must not let child agents search the shared vault root or sibling project namespaces unless the user explicitly requested cross-project memory work.
-- If a child tries to orchestrate, delegate further, wait for nonexistent agents, or continue into a later GSD step, interrupt that child, discard its routing attempt, and respawn a fresh bounded child with a narrower prompt.
+- If a child tries to orchestrate, delegate further, wait for nonexistent agents, execute after verification, or continue the milestone loop, interrupt that child, discard its routing attempt, and respawn a fresh bounded child with a narrower prompt.
 - Do not infer milestone completion from a missing `Next-Step Prompt` alone. Milestone completion must be explicit.
 - If a child returns `partial` or `fail`, use its `Next-Step Prompt` only when the recovery action is explicit. Otherwise stop and surface the ambiguity.
 - Re-read [`.planning/STATE.md`](../../../.planning/STATE.md) between loops when a child reports artifact updates, so the orchestrator does not route from stale context.
@@ -52,12 +58,15 @@ This skill is for user-requested milestone automation where the main session sho
 ## Child Prompt Contract
 Every delegated child prompt should make the child role explicit. Use wording equivalent to all of the following:
 - You are a delegated child agent, not the milestone orchestrator.
-- Execute exactly one GSD step: planning, execution, or verification.
+- Perform only the assigned child action: planning, execution, or the explicit `$gsd-run-milestone` verification-and-next-phase-planning composite step.
 - Do not call `spawn_agent`, `send_input`, `wait_agent`, or `close_agent`.
-- Do not perform any later GSD step, even if the next action seems obvious.
+- If assigned execution, do not perform verification or planning.
+- If assigned the verification-and-next-phase-planning composite step, first verify the active phase using `$gsd-verify-phase` rules. If verification passes and the milestone is incomplete, create exactly one next bounded phase in the same active milestone using `$gsd-plan-milestone` rules, then stop.
+- If assigned the composite step, do not create the next phase on `fail`, `partial`, blocked verification, or completed milestone.
+- If assigned the composite step, do not execute the newly created phase, continue the loop, spawn agents, or route beyond the single next phase creation.
 - Use the provided context-routing guidance first. Do not broaden into unrelated repository areas unless necessary, and explain any deviation.
 - Child prompts and child outputs must remain English, following the conversation-language policy defined in `AGENTS.md`.
-- When your assigned step is complete, return `Phase Status`, `Milestone Status`, and `Next-Step Prompt`, then stop immediately.
+- When your assigned step is complete, return `Phase Status`, `Milestone Status`, and `Next-Step Prompt` when another step applies, then stop immediately.
 
 ## Required Outputs
 - A milestone-level summary from the root session showing each delegated step, the final milestone status, and any blocking ambiguity if the loop could not continue automatically.

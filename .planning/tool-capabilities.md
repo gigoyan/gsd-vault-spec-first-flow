@@ -4,6 +4,7 @@
 | Command | Reason | Approved Alternative | Date | Evidence |
 | --- | --- | --- | --- | --- |
 | rg / rg.exe | Discoverable but not executable in this environment | PowerShell-native search: Get-ChildItem + Select-String | YYYY-MM-DD | rg.exe failed during repo execution |
+| git diff --no-index --label | This Git build reports `unknown option label` | `git diff --no-index --no-ext-diff` without custom labels | 2026-05-20 | `git diff --no-index --no-ext-diff --label ...` failed while generating GSD sync preview |
 
 ## Rules
 - Before using a shell/search/build/test command, check this file.

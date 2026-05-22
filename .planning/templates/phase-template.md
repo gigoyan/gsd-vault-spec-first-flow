@@ -55,5 +55,7 @@
 - DC5: Context routing was followed or a justified exception was recorded when the context index was missing, stale, or insufficient.
 
 ## Post-Verification Routing
-- If this phase passes and the milestone is incomplete, the next action should be `$gsd-plan-milestone` for the next bounded phase in the same milestone.
+- In standalone verification, if this phase passes and the milestone is incomplete, the next action should be `$gsd-plan-milestone` for the next bounded phase in the same milestone.
+- In `$gsd-run-milestone`, the root orchestrator may assign a verification-and-next-phase-planning child that verifies this phase and, after a pass with an incomplete milestone, creates the next bounded phase in the same delegated step.
+- The `$gsd-run-milestone` composite child must not create a next phase on `fail`, `partial`, blocked verification, or completed milestone, and must not execute the newly created phase.
 - Keep the phase repo-local unless the next phase explicitly needs a memory lookup or later session-save follow-up.

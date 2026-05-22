@@ -1,0 +1,4 @@
+interface:
+  display_name: "GSD Export Blueprint Package"
+  short_description: "Export a compact blueprint package"
+  default_prompt: "Use $gsd-export-blueprint-package to create a versioned, file-count-friendly GSD blueprint export for ChatGPT project upload."

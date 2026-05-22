@@ -190,8 +190,7 @@
   - `$gsd-verify-phase`
   - `$gsd-run-milestone`
   - `$gsd-quick-task`
-  - `$gsd-sync-blueprint`
-  - `$gsd-audit-blueprint-drift`
+  - `$gsd-update-blueprint`
 - Use the milestone path for anything cross-file, architectural, ambiguous, multi-step, or likely to span multiple turns.
 - Use `$gsd-quick-task` only for small, low-risk, bounded work.
 - Default to test-first by meaningful behavior slice when practical.
@@ -200,11 +199,15 @@
 ## `gsd-run-milestone`
 - Preserve `$gsd-run-milestone` as a user-requested milestone automation capability.
 - The root session is the only milestone orchestrator.
-- The root session delegates exactly one bounded GSD step at a time.
-- Child agents perform exactly one assigned GSD step and then stop.
-- Child agents must not orchestrate, route, or spawn other agents.
+- If no active milestone or phase exists and planning is needed, the root session may delegate one planning child as before.
+- The normal active-phase loop uses at most two child agents:
+  1. one execution child that executes the active phase;
+  2. one verification-and-next-phase-planning child that verifies the active phase and, only if verification passes and the milestone is still incomplete, creates the next bounded phase in the same active milestone.
+- The verification-and-next-phase-planning composite child behavior is allowed only inside `$gsd-run-milestone`.
+- Standalone `$gsd-verify-phase` and standalone `$gsd-plan-milestone` remain unchanged.
+- Child agents must not orchestrate, spawn agents, continue the milestone loop, or execute implementation after verification.
+- The composite child must not create the next phase on failed, partial, blocked, or milestone-completing verification.
 - Routing depends on explicit `Phase Status`, `Milestone Status`, and `Next-Step Prompt` output.
-- Example: a child may execute one phase and return control, but may not decide to continue the loop.
 
 ## Reusable Package Cleanup Requirement
 - A reusable GSD package must not ship milestone, phase, verification, roadmap, or state history from developing the GSD package itself.

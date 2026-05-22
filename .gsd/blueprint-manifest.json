@@ -37,13 +37,6 @@
       "description": "Blueprint-managed AGENTS.md operating contract block source."
     },
     {
-      "path": ".agents/skills/gsd-audit-blueprint-drift/SKILL.md",
-      "owner": "blueprint_replace",
-      "sync_strategy": "replace",
-      "required": true,
-      "description": "Read-only blueprint drift audit skill."
-    },
-    {
       "path": ".agents/skills/gsd-deep-map-codebase/SKILL.md",
       "owner": "blueprint_replace",
       "sync_strategy": "replace",
@@ -70,6 +63,27 @@
       "sync_strategy": "replace",
       "required": true,
       "description": "Phase execution child-agent configuration."
+    },
+    {
+      "path": ".agents/skills/gsd-export-blueprint-package/SKILL.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Blueprint package export skill instructions."
+    },
+    {
+      "path": ".agents/skills/gsd-export-blueprint-package/agents/openai.yaml",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Blueprint package export child-agent configuration."
+    },
+    {
+      "path": ".agents/skills/gsd-export-blueprint-package/scripts/export_blueprint_package.py",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Deterministic script for creating file-count-friendly blueprint export packages."
     },
     {
       "path": ".agents/skills/gsd-map-codebase/SKILL.md",
@@ -198,11 +212,18 @@
       "description": "Session save child-agent configuration."
     },
     {
-      "path": ".agents/skills/gsd-sync-blueprint/SKILL.md",
+      "path": ".agents/skills/gsd-update-blueprint/SKILL.md",
       "owner": "blueprint_replace",
       "sync_strategy": "replace",
       "required": true,
-      "description": "Safe blueprint install and update skill."
+      "description": "Audit-gated blueprint install and update skill."
+    },
+    {
+      "path": ".agents/skills/gsd-update-blueprint/agents/openai.yaml",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Audit-gated blueprint update child-agent configuration."
     },
     {
       "path": ".agents/skills/gsd-vault-bootstrap/SKILL.md",

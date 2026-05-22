@@ -6,7 +6,7 @@ description: Verify a completed execution phase against its explicit done criter
 # GSD Verify Phase
 
 Verify the active phase before it is considered complete.
-Use this skill to compare implementation results against the phase and milestone criteria, write a verification artifact, and update session state.
+Use this skill to compare implementation results against the phase and milestone criteria, write a verification artifact, and update session state. Standalone verification remains verification-only.
 
 ## Workflow
 1. Read [PROJECT.md](../../../PROJECT.md), [`.planning/STATE.md`](../../../.planning/STATE.md), the active phase file, the parent milestone file, and the governing spec or planning artifacts already named by those active artifacts.
@@ -17,8 +17,9 @@ Use this skill to compare implementation results against the phase and milestone
 6. Verify that any `Confirmed`, `Suggested`, and `Unknown` handling used by the changed behavior matches the shared meanings in [`.planning/templates/intake-routing-and-evidence-contract.md`](../../../.planning/templates/intake-routing-and-evidence-contract.md), and verify that choice-shaped user interactions use UI options when practical.
 7. Write or refresh a verification file under [`.planning/verification/`](../../../.planning/verification/) using the active phase naming pattern, including test-first evidence, any justified exception, and context-routing evidence: whether the context index was consulted, which routing row or module card was used, whether unnecessary scanning was avoided, and whether a context-index refresh follow-up is needed. If verification exposes a durable insight worth keeping, record the later `gsd-session-save` follow-up as `candidate` or `none` instead of writing durable memory here.
 8. Decide whether the phase is complete and whether the milestone is now complete or still in progress with follow-up phases remaining.
-9. If the milestone has completed and cleanup would remove temporary blueprint-improvement scaffolding, stop at the verification result and ask the user whether cleanup should run before any deletion or reset happens.
-10. Update [`.planning/STATE.md`](../../../.planning/STATE.md) with disposition, milestone status, phase status, latest verification, residual risks, next action, and an explicit durable-memory follow-up decision of `candidate` or `none`.
+9. Standalone verification and normal delegated verification stop after the verification result and routing output. Exception: when the child prompt explicitly assigns the `$gsd-run-milestone` verification-and-next-phase-planning composite step, and verification passes while the milestone is incomplete, create exactly one next bounded phase in the same active milestone using `$gsd-plan-milestone` rules.
+10. If the milestone has completed and cleanup would remove temporary blueprint-improvement scaffolding, stop at the verification result and ask the user whether cleanup should run before any deletion or reset happens.
+11. Update [`.planning/STATE.md`](../../../.planning/STATE.md) with disposition, milestone status, phase status, latest verification, residual risks, next action, and an explicit durable-memory follow-up decision of `candidate` or `none`.
 
 ## Source Template
 - [`.planning/templates/verification-template.md`](../../../.planning/templates/verification-template.md)
@@ -45,13 +46,18 @@ Use this skill to compare implementation results against the phase and milestone
 - For blueprint-self-improvement work inside the reusable GSD package, treat the active milestone, active phase, shared contracts, and prior verification chain as acceptable governing traceability when project-specific Project Idea Document, Technical Specification, and stack-selection/configuration-package artifacts are intentionally absent.
 - Mark `partial` or `fail` when changed behavior silently blurs `Confirmed`, `Suggested`, and `Unknown`, or when choice-shaped user interaction falls back to free-text without justification.
 - If a failure suggests new work, capture it in the verification artifact and hand back to planning or a follow-up phase.
-- When invoked as a delegated child under `$gsd-run-milestone`, perform verification only. Do not orchestrate, do not delegate, and do not continue into replanning or execution yourself.
+- Standalone verification remains verification-only. Normal delegated verification remains verification-only.
+- Narrow exception: when the child prompt explicitly assigns the `$gsd-run-milestone` verification-and-next-phase-planning composite step, the child may create exactly one next bounded phase after a passing verification if the milestone is incomplete.
+- In the composite step, do not create the next phase on `fail`, `partial`, blocked verification, or completed milestone.
+- In the composite step, do not execute the next phase, continue the milestone loop, orchestrate, delegate, or route beyond creating the single next bounded phase.
+- When invoked as a delegated child under `$gsd-run-milestone` without the explicit composite assignment, limit the work to verification. Do not orchestrate, delegate, create a follow-up phase, or execute implementation yourself.
 - As a delegated child, do not call `spawn_agent`, `send_input`, `wait_agent`, or `close_agent`.
 - If the phase passes and the milestone is still incomplete, set `Phase Status: completed`, set `Milestone Status: in_progress`, and emit a `Next-Step Prompt` that sends the next agent to `$gsd-plan-milestone` to define the next bounded phase inside the current milestone.
+- In the explicit `$gsd-run-milestone` composite step, replace that handoff by creating the next bounded phase directly in the same child response, then emit routing output for the root orchestrator to execute that new active phase.
 - If verification shows the active milestone is complete, set `Milestone Status: completed` and do not emit a `Next-Step Prompt`. Instead, state briefly that the milestone is complete and suggest the next incomplete milestone or milestones from `.planning/ROADMAP.md` if any exist.
 - If the active milestone is a temporary blueprint-improvement effort and verification completion would make cleanup eligible, stop and ask the user whether cleanup should run; do not delete or reset scaffolding during verification without explicit approval.
 - If verification is `partial` or `fail`, keep `Milestone Status: in_progress` unless the milestone is explicitly abandoned, and emit a `Next-Step Prompt` only when the immediate recovery action is clear; if not, say briefly that no automatic next-step prompt applies.
-- After returning the required outputs, stop immediately. Do not begin planning, execution, or any additional routing work yourself.
+- After returning the required outputs, stop immediately. Outside the explicit `$gsd-run-milestone` composite step, do not begin planning, execution, or any additional routing work yourself.
 - Treat the `Next-Step Prompt` as response-only handoff text. Do not write it into verification, phase, milestone, roadmap, or state artifacts unless the user explicitly asks for that artifact content.
 - Prefer concrete evidence over narrative claims.
 - Verification should check not only whether behavior passed, but whether the implementation used the intended context route or justified deviations.
