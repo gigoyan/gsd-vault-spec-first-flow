@@ -1,10 +1,15 @@
 # Verification Template
 
 ## Checks Run
-- Targeted validation run first:
-- Result:
-- Broader checks:
-- Result:
+- Execution targeted validation reviewed:
+- Execution validation-set sufficiency:
+- Execution targeted result:
+- Verifier targeted check rerun:
+- Verifier targeted result:
+- Execution broader checks reviewed:
+- Verifier broader checks rerun, if needed:
+- Reason broader checks were not rerun, if applicable:
+- Validation adequacy disposition:
 - Memory-aware context pack, if used:
 - Context index consulted:
 - Routing row or module card used:
@@ -14,6 +19,7 @@
 
 ## Test-First Evidence
 - Tests or checks added or changed:
+- Minimum sufficient validation set:
 - Failing-first observed or why not:
 - Durable-memory follow-up:
   - Record `candidate: <note kind + why>` or `none`.

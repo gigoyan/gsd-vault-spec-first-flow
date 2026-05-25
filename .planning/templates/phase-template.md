@@ -11,8 +11,8 @@
 
 ## Steps
 1. Read `.planning/CONTEXT_INDEX.md` when available and identify the narrowest relevant routing row or module card before scanning source files.
-2. Define the targeted validation for this slice.
-3. Update the most relevant tests or checks first when practical.
+2. Define the minimum sufficient validation set for this behavior slice.
+3. Update the required tests or checks first when practical.
 4. Implement the minimum change needed to satisfy that validation.
 5. If the phase produces durable insight, leave a session-save candidate for later instead of writing memory here.
 
@@ -42,14 +42,16 @@
 
 ## Test-First Validation
 - Primary test level:
-- First tests or checks:
+- Minimum sufficient pre-implementation validation set:
+- First decisive failing test or check:
+- Additional tests or checks required for this slice:
 - Failing-first expectation or exception note:
 - Broader phase checks:
 - Memory-aware context pack:
 
 ## Done Criteria
-- DC1: Targeted validation exists for the changed behavior, or an exception is justified with the nearest safeguard.
-- DC2: Implementation is the minimum needed to satisfy the targeted validation and broader required checks.
+- DC1: The minimum sufficient validation set exists for the changed behavior before implementation, or an exception is justified with the nearest safeguard.
+- DC2: Implementation is the minimum needed to satisfy the selected validation set and broader required checks.
 - DC3: Validated behavior satisfies the milestone acceptance criteria with evidence suitable for verification.
 - DC4: Phase-specific constraints and implementation notes were respected, or any necessary deviation was escalated for replanning.
 - DC5: Context routing was followed or a justified exception was recorded when the context index was missing, stale, or insufficient.
