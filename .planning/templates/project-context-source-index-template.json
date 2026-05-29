@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "profile": "",
+  "profile_version": 1,
+  "sources": [
+    {
+      "source_id": "repo:.planning/STATE.md",
+      "source_type": "repo_file",
+      "path": ".planning/STATE.md",
+      "hash": "",
+      "included_in": [
+        "state-snapshot.md"
+      ],
+      "status": "included"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "state.current_phase",
+      "target_file": "state-snapshot.md",
+      "claim": "compact sanitized claim text only",
+      "source_refs": [
+        {
+          "source_id": "repo:.planning/STATE.md",
+          "anchor": "Current Phase"
+        }
+      ]
+    }
+  ]
+}

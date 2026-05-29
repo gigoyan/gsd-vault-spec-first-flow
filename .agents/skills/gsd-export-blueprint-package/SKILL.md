@@ -52,6 +52,7 @@ If `--base-export` is omitted in an incremental mode, fail clearly. Automatic pr
   - `checksums.sha256`
   - `git-status.txt`
   - `skills.md`
+  - `skill-scripts.md` when text/code files exist under `.agents/skills/**/scripts/**`
   - `templates.md`
   - `stack-profiles-<domain>.md` for each stack-profile domain with manifest-listed content
   - `agents.md`
@@ -71,6 +72,11 @@ If `--base-export` is omitted in an incremental mode, fail clearly. Automatic pr
 - Consolidate `.agents/skills/**/SKILL.md` into `skills.md`.
 - Sort skill sources by relative path.
 - Use the skill directory name as each section ID and title.
+- Consolidate text/code files under `.agents/skills/**/scripts/**` into `skill-scripts.md` when at least one script exists.
+- Sort skill script sections by normalized source path.
+- Use `<skill-name>/scripts/<relative-script-path>` as each skill script section ID and title.
+- Render skill scripts as fenced code blocks with a language inferred from file extension, using fence length that preserves script text safely.
+- Do not execute skill scripts during export.
 - Consolidate `.planning/templates/**` into `templates.md`.
 - Sort template sources by relative path under `.planning/templates/`.
 - Use the template-relative path as each section ID and title.
@@ -95,6 +101,7 @@ Every consolidated section must be wrapped with stable markers:
 Allowed groups:
 
 - `skills`
+- `skill-scripts`
 - `templates`
 - `stack-profiles`
 
@@ -120,6 +127,8 @@ Markers must be balanced, deterministic, and unique within each target file. Inc
 - Never copy generated project-local `.codex` outputs.
 - Never copy files outside the repository root.
 - Never follow symlinks outside the repository root.
+- Consolidate supported text/code `.agents/skills/**/scripts/**` files into `skill-scripts.md`; do not list consolidated scripts as skipped.
+- Skip unsupported binary, compiled, cache, or non-text files under `.agents/skills/**/scripts/**` with reason `unsupported non-text skill script asset`.
 - If ownership is unclear, skip the file and report the reason.
 
 ## Manifest Requirements
@@ -132,6 +141,7 @@ Markers must be balanced, deterministic, and unique within each target file. Inc
 - incremental fallback status and reasons
 - generated `index.md`
 - generated `export-lock.json`
+- `skill_scripts_file`, `consolidated_skill_script_sources`, and `skill_scripts_consolidated`
 - changed, added, and removed sections
 - changed copied files
 - regenerated target files
@@ -175,8 +185,14 @@ Markers must be balanced, deterministic, and unique within each target file. Inc
 - `index.md` explains the flattened export mapping.
 - `export-lock.json` exists and maps sources to copied files or consolidated sections.
 - `skills.md`, `templates.md`, and generated `stack-profiles-<domain>.md` files contain balanced section markers.
+- `skill-scripts.md` exists when text/code skill scripts exist.
+- Every text/code script under `.agents/skills/**/scripts/**` has exactly one section in `skill-scripts.md`.
+- Script section markers are balanced.
+- Script source hashes and rendered section hashes are recorded in `export-lock.json`.
+- Consolidated scripts are not listed as skipped.
 - Lock sections match consolidated file sections.
 - `checksums.sha256` includes all final root-level export files except itself.
+- `checksums.sha256` includes `skill-scripts.md` when generated.
 - `agents.md` and `project.md` exist at the export root.
 - No export subdirectories exist.
 - Runtime planning history and generated `.codex` outputs are not exported.

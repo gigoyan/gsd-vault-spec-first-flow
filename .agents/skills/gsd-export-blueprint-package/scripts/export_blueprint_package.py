@@ -23,6 +23,7 @@ MANIFEST_RELATIVE_PATH = ".gsd/blueprint-manifest.json"
 SKILL_ROOT = ".agents/skills"
 TEMPLATE_ROOT = ".planning/templates"
 STACK_PROFILE_ROOT = ".agents/stack-profiles"
+SKILL_SCRIPTS_TARGET = "skill-scripts.md"
 SECTION_START_PREFIX = "<!-- GSD-EXPORT-SECTION:START "
 SECTION_END_PREFIX = "<!-- GSD-EXPORT-SECTION:END "
 METADATA_FILES = [
@@ -62,6 +63,29 @@ RUNTIME_PLANNING_PREFIXES = (
     ".planning/verification/",
     ".planning/archive/",
 )
+CODE_FENCE_LANGUAGE_BY_EXTENSION = {
+    ".py": "python",
+    ".sh": "bash",
+    ".bash": "bash",
+    ".zsh": "zsh",
+    ".ps1": "powershell",
+    ".js": "javascript",
+    ".mjs": "javascript",
+    ".cjs": "javascript",
+    ".ts": "typescript",
+    ".tsx": "tsx",
+    ".json": "json",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+    ".toml": "toml",
+    ".xml": "xml",
+    ".md": "markdown",
+    ".txt": "text",
+}
+SKILL_SCRIPT_EXCLUDED_FILENAMES = {".DS_Store"}
+SKILL_SCRIPT_EXCLUDED_SUFFIXES = {".pyc", ".pyo"}
+SKILL_SCRIPT_EXCLUDED_DIRS = {"__pycache__"}
+MAX_SKILL_SCRIPT_BYTES = 1024 * 1024
 
 
 @dataclass(frozen=True)
@@ -101,6 +125,7 @@ class RenderPlan:
     consolidated_outputs: dict[str, list[Section]]
     copy_outputs: dict[str, CopyOutput]
     skill_sources: list[str]
+    skill_script_sources: list[str]
     template_sources: list[str]
     stack_profile_sources_by_target: dict[str, list[str]]
     copied_root_files: list[dict[str, str]]
@@ -318,6 +343,17 @@ def is_skill_instruction(path: str) -> bool:
     )
 
 
+def is_skill_script_source(path: str) -> bool:
+    parts = path.split("/")
+    return (
+        len(parts) >= 5
+        and parts[0] == ".agents"
+        and parts[1] == "skills"
+        and parts[3] == "scripts"
+        and not has_glob(path)
+    )
+
+
 def is_template(path: str) -> bool:
     return path.startswith(f"{TEMPLATE_ROOT}/") and not has_glob(path)
 
@@ -342,6 +378,11 @@ def template_title(path: str) -> str:
 
 def skill_title(path: str) -> str:
     return path.split("/")[2]
+
+
+def skill_script_title(path: str) -> str:
+    parts = path.split("/")
+    return "/".join([parts[2], "scripts", *parts[4:]])
 
 
 def stack_profile_title(path: str) -> str:
@@ -374,6 +415,17 @@ def is_generated_project_local(entry: dict[str, Any]) -> bool:
 
 def is_project_preserve(entry: dict[str, Any]) -> bool:
     return entry.get("owner") == "project_preserve" or entry.get("sync_strategy") == "preserve"
+
+
+def is_excluded_skill_script_asset(path: str) -> bool:
+    parts = path.split("/")
+    filename = parts[-1]
+    suffix = Path(filename).suffix.lower()
+    return (
+        filename in SKILL_SCRIPT_EXCLUDED_FILENAMES
+        or suffix in SKILL_SCRIPT_EXCLUDED_SUFFIXES
+        or any(part in SKILL_SCRIPT_EXCLUDED_DIRS for part in parts)
+    )
 
 
 def source_path(repo_root: Path, relative_path: str) -> tuple[Path | None, str | None]:
@@ -448,6 +500,75 @@ def add_stack_profile_source(
     stack_profile_sources_by_domain.setdefault(domain, set()).add(path)
 
 
+def add_skill_script_source(
+    repo_root: Path,
+    skill_script_sources: set[str],
+    skipped: list[dict[str, str]],
+    warnings: list[str],
+    path: str,
+    entry: dict[str, Any] | None = None,
+) -> None:
+    if not is_skill_script_source(path):
+        add_skip(skipped, path, "unsupported non-text skill script asset", entry)
+        return
+
+    if is_excluded_skill_script_asset(path):
+        add_skip(skipped, path, "unsupported non-text skill script asset", entry)
+        return
+
+    source_file, source_error = source_path(repo_root, path)
+    if source_error or source_file is None:
+        add_skip(skipped, path, source_error or "source path unavailable", entry)
+        warnings.append(f"Skipped skill script source {path}: {source_error}.")
+        return
+
+    try:
+        if source_file.stat().st_size > MAX_SKILL_SCRIPT_BYTES:
+            add_skip(skipped, path, "unsupported non-text skill script asset", entry)
+            warnings.append(f"Skipped skill script source {path}: file is too large for root-only export.")
+            return
+        source_file.read_bytes().decode("utf-8")
+    except UnicodeDecodeError:
+        add_skip(skipped, path, "unsupported non-text skill script asset", entry)
+        warnings.append(f"Skipped skill script source {path}: source file is not UTF-8 text.")
+        return
+    except OSError as exc:
+        add_skip(skipped, path, f"could not read source file: {exc}", entry)
+        warnings.append(f"Skipped skill script source {path}: {exc}.")
+        return
+
+    skill_script_sources.add(path)
+
+
+def discover_skill_script_sources(
+    repo_root: Path,
+    skipped: list[dict[str, str]],
+    warnings: list[str],
+) -> set[str]:
+    discovered: set[str] = set()
+    skill_root = repo_root / ".agents" / "skills"
+    if not skill_root.is_dir():
+        return discovered
+
+    for scripts_dir in sorted(skill_root.glob("*/scripts"), key=lambda path: path.as_posix().lower()):
+        if not scripts_dir.is_dir():
+            continue
+        for candidate in sorted(scripts_dir.rglob("*"), key=lambda path: path.as_posix().lower()):
+            if not candidate.is_file():
+                continue
+            try:
+                resolved = candidate.resolve(strict=True)
+                resolved.relative_to(repo_root)
+            except (FileNotFoundError, OSError, ValueError):
+                relative = candidate.relative_to(repo_root).as_posix()
+                add_skip(skipped, relative, "source path resolves outside repository root")
+                continue
+            relative = resolved.relative_to(repo_root).as_posix()
+            add_skill_script_source(repo_root, discovered, skipped, warnings, relative)
+
+    return discovered
+
+
 def expand_stack_profile_glob(repo_root: Path, pattern: str) -> list[str]:
     matches: list[str] = []
     patterns = [pattern]
@@ -479,8 +600,9 @@ def expand_stack_profile_glob(repo_root: Path, pattern: str) -> list[str]:
 
 def classify_manifest(
     repo_root: Path, manifest: dict[str, Any]
-) -> tuple[list[str], list[str], dict[str, list[str]], dict[str, str], list[dict[str, str]], list[str]]:
+) -> tuple[list[str], list[str], list[str], dict[str, list[str]], dict[str, str], list[dict[str, str]], list[str]]:
     skill_sources: set[str] = set()
+    skill_script_sources: set[str] = set()
     template_sources: set[str] = set()
     stack_profile_sources_by_domain: dict[str, set[str]] = {}
     root_copy_sources: dict[str, str] = {}
@@ -537,6 +659,10 @@ def classify_manifest(
             skill_sources.add(path)
             continue
 
+        if is_skill_script_source(path):
+            add_skill_script_source(repo_root, skill_script_sources, skipped, warnings, path, entry)
+            continue
+
         if is_template(path):
             template_sources.add(path)
             continue
@@ -576,6 +702,14 @@ def classify_manifest(
             entry,
         )
 
+    discovered_skill_scripts = discover_skill_script_sources(repo_root, skipped, warnings)
+    missing_from_manifest = discovered_skill_scripts - skill_script_sources
+    for relative_path in sorted(missing_from_manifest):
+        warnings.append(
+            f"Consolidated local skill script {relative_path} even though it was not listed in the manifest."
+        )
+    skill_script_sources.update(discovered_skill_scripts)
+
     local_export_skill = f"{SKILL_ROOT}/gsd-export-blueprint-package/SKILL.md"
     if (repo_root / ".agents" / "skills" / "gsd-export-blueprint-package" / "SKILL.md").is_file():
         if local_export_skill not in skill_sources:
@@ -586,6 +720,7 @@ def classify_manifest(
 
     return (
         sorted(skill_sources),
+        sort_normalized_paths(skill_script_sources),
         sorted(template_sources),
         {
             domain: sort_normalized_paths(sources)
@@ -638,14 +773,9 @@ def markdown_source(path: str) -> bool:
 
 def code_fence_language(path: str) -> str:
     lowered = path.lower()
-    if lowered.endswith(".toml"):
-        return "toml"
-    if lowered.endswith(".json"):
-        return "json"
-    if lowered.endswith((".yaml", ".yml")):
-        return "yaml"
-    if lowered.endswith(".txt"):
-        return "text"
+    suffix = Path(lowered).suffix
+    if suffix in CODE_FENCE_LANGUAGE_BY_EXTENSION:
+        return CODE_FENCE_LANGUAGE_BY_EXTENSION[suffix]
     if ".template" in lowered:
         return "text"
     return "text"
@@ -753,6 +883,33 @@ def render_stack_profile_section(repo_root: Path, source: str) -> Section:
     )
 
 
+def render_skill_script_section(repo_root: Path, source: str) -> Section:
+    content = read_source_text(repo_root, source)
+    fence = code_fence_for(content)
+    language = code_fence_language(source)
+    body = f"{fence}{language}\n{ensure_trailing_newline(content)}{fence}\n"
+    section_id = skill_script_title(source)
+    section = render_section(
+        "skill-scripts",
+        section_id,
+        section_id,
+        source,
+        body,
+        f"fenced:{language}",
+    )
+    return Section(
+        group=section.group,
+        section_id=section.section_id,
+        source_path=section.source_path,
+        source_hash=source_hash(repo_root, source),
+        rendered=section.rendered,
+        rendered_hash=section.rendered_hash,
+        content_mode=section.content_mode,
+        start_marker=section.start_marker,
+        end_marker=section.end_marker,
+    )
+
+
 def build_consolidated_file(target_file: str, sections: list[Section]) -> str:
     content = f"# {target_file}\n\n"
     if sections:
@@ -788,6 +945,7 @@ def build_sections(
 def build_render_plan(repo_root: Path, manifest: dict[str, Any]) -> RenderPlan:
     (
         skill_sources,
+        skill_script_sources,
         template_sources,
         stack_profile_sources_by_domain,
         root_copy_sources,
@@ -800,6 +958,15 @@ def build_render_plan(repo_root: Path, manifest: dict[str, Any]) -> RenderPlan:
     template_sections = build_sections(repo_root, template_sources, "templates", template_title, warnings)
     consolidated_outputs["skills.md"] = skills_sections
     consolidated_outputs["templates.md"] = template_sections
+
+    skill_script_sections: list[Section] = []
+    for relative_path in skill_script_sources:
+        try:
+            skill_script_sections.append(render_skill_script_section(repo_root, relative_path))
+        except (OSError, UnicodeError) as exc:
+            warnings.append(f"Skipped skill script source {relative_path}: {exc}.")
+    if skill_script_sections:
+        consolidated_outputs[SKILL_SCRIPTS_TARGET] = skill_script_sections
 
     stack_profile_sources_by_target: dict[str, list[str]] = {}
     for domain, sources in stack_profile_sources_by_domain.items():
@@ -844,6 +1011,7 @@ def build_render_plan(repo_root: Path, manifest: dict[str, Any]) -> RenderPlan:
         consolidated_outputs=dict(sorted(consolidated_outputs.items())),
         copy_outputs=dict(sorted(copy_outputs.items())),
         skill_sources=skill_sources,
+        skill_script_sources=skill_script_sources,
         template_sources=template_sources,
         stack_profile_sources_by_target=dict(sorted(stack_profile_sources_by_target.items())),
         copied_root_files=sorted(copied_root_files, key=lambda item: item["target"]),
@@ -857,13 +1025,14 @@ def build_index_md() -> str:
 
 This package is a root-only export of the reusable GSD blueprint for ChatGPT Project upload or portable review. It is a flattened representation, not the original repository layout.
 
-The source repository contains directories such as `.agents/skills/**`, `.planning/templates/**`, `.agents/stack-profiles/**`, `.gsd/**`, plus root files such as `AGENTS.md` and `PROJECT.md`. This export intentionally consolidates those sources into a small set of root files, so separate skill folders, template files, stack-profile folders, runtime planning files, and generated `.codex` outputs are intentionally absent.
+The source repository contains directories such as `.agents/skills/**`, `.planning/templates/**`, `.agents/stack-profiles/**`, `.gsd/**`, plus root files such as `AGENTS.md` and `PROJECT.md`. This export intentionally consolidates those sources into a small set of root files, so separate skill folders, script folders, template files, stack-profile folders, runtime planning files, and generated `.codex` outputs are intentionally absent.
 
-Consolidated sections in `skills.md`, `templates.md`, and `stack-profiles-<domain>.md` represent original source files. Skipped files are intentional and are recorded in `export-manifest.json`. Runtime planning files, milestones, phases, verification artifacts, `.codex` outputs, and project history are not exported. `export-lock.json` tracks source-to-section mappings for incremental export. `export-manifest.json` summarizes the export run. `checksums.sha256` covers final root-level export files except itself.
+Consolidated sections in `skills.md`, `skill-scripts.md`, `templates.md`, and `stack-profiles-<domain>.md` represent original source files. `skill-scripts.md` contains text/code script implementations used by skills. It is included for review, validation, and portable understanding. It does not recreate the original executable folder layout. Skipped files are intentional and are recorded in `export-manifest.json`. Runtime planning files, milestones, phases, verification artifacts, `.codex` outputs, and project history are not exported. `export-lock.json` tracks source-to-section mappings for incremental export. `export-manifest.json` summarizes the export run. `checksums.sha256` covers final root-level export files except itself.
 
 | Original GSD source                                                            | Export representation                                                                  |
 | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
 | `.agents/skills/**/SKILL.md`                                                   | sections inside `skills.md`                                                            |
+| `.agents/skills/**/scripts/**`                                                 | sections inside `skill-scripts.md`                                                     |
 | `.planning/templates/**`                                                       | sections inside `templates.md`                                                         |
 | `.agents/stack-profiles/<domain>/**`                                           | sections inside `stack-profiles-<domain>.md`                                           |
 | `AGENTS.md`                                                                    | copied as `agents.md`                                                                  |
@@ -927,6 +1096,102 @@ def write_checksums(export_root: Path, generated_files: list[str]) -> None:
     write_bytes(export_root / "checksums.sha256", "".join(lines))
 
 
+def validate_content_plan(
+    render_plan: RenderPlan,
+    content_by_file: dict[str, str],
+    outputs: list[dict[str, Any]],
+    generated_files: list[str],
+) -> None:
+    has_script_sources = bool(render_plan.skill_script_sources)
+    has_script_target = SKILL_SCRIPTS_TARGET in content_by_file
+    if has_script_sources and not has_script_target:
+        fail("validation failed: skill-scripts.md is required when text/code skill scripts exist")
+    if not has_script_sources and has_script_target:
+        fail("validation failed: skill-scripts.md must be omitted when no text/code skill scripts exist")
+    if has_script_target and SKILL_SCRIPTS_TARGET not in generated_files:
+        fail("validation failed: generated_files does not include skill-scripts.md")
+    if not has_script_target and SKILL_SCRIPTS_TARGET in generated_files:
+        fail("validation failed: generated_files includes skill-scripts.md without script content")
+
+    skipped_paths = {item.get("path") for item in render_plan.skipped}
+    leaked_skips = sorted(set(render_plan.skill_script_sources) & skipped_paths)
+    if leaked_skips:
+        fail(
+            "validation failed: consolidated skill scripts are listed as skipped sources: "
+            + ", ".join(leaked_skips)
+        )
+
+    output_by_target = {
+        output.get("target_file"): output
+        for output in outputs
+        if isinstance(output.get("target_file"), str)
+    }
+    script_output = output_by_target.get(SKILL_SCRIPTS_TARGET) if has_script_target else None
+    if has_script_target:
+        if not script_output or script_output.get("output_kind") != "consolidated":
+            fail("validation failed: export-lock output missing consolidated skill-scripts.md entry")
+        if script_output.get("group") != "skill-scripts":
+            fail("validation failed: skill-scripts.md lock entry has the wrong group")
+
+    for target_file, sections in render_plan.consolidated_outputs.items():
+        content = content_by_file.get(target_file)
+        if content is None:
+            fail(f"validation failed: missing consolidated target content for {target_file}")
+        group = sections[0].group if sections else ""
+        parsed_sections, parse_error = parse_marked_sections(content, group)
+        if parse_error:
+            fail(f"validation failed: {target_file}: {parse_error}")
+        expected_ids = [section.section_id for section in sections]
+        if len(expected_ids) != len(set(expected_ids)):
+            fail(f"validation failed: duplicate section ids in {target_file}")
+        if set(parsed_sections) != set(expected_ids):
+            fail(f"validation failed: lock sections do not match rendered markers in {target_file}")
+        for section in sections:
+            if parsed_sections[section.section_id] != section.rendered:
+                fail(f"validation failed: rendered section mismatch for {target_file} {section.section_id}")
+            if sha256_text(parsed_sections[section.section_id]) != section.rendered_hash:
+                fail(f"validation failed: rendered section hash mismatch for {target_file} {section.section_id}")
+
+    if script_output:
+        script_sections = script_output.get("sections")
+        if not isinstance(script_sections, list):
+            fail("validation failed: skill-scripts.md lock entry is missing sections")
+        section_paths = [section.get("source_path") for section in script_sections if isinstance(section, dict)]
+        if sorted(section_paths) != sorted(render_plan.skill_script_sources):
+            fail("validation failed: skill-scripts.md lock sections do not match consolidated script sources")
+        section_ids = [section.get("section_id") for section in script_sections if isinstance(section, dict)]
+        expected_ids = [skill_script_title(path) for path in render_plan.skill_script_sources]
+        if sorted(section_ids) != sorted(expected_ids):
+            fail("validation failed: skill-scripts.md lock section ids do not match expected script ids")
+
+
+def validate_written_export(export_root: Path, generated_files: list[str]) -> None:
+    directories = [path for path in export_root.iterdir() if path.is_dir()]
+    if directories:
+        fail(
+            "validation failed: export root contains subdirectories: "
+            + ", ".join(path.name for path in directories)
+        )
+
+    missing_files = [filename for filename in generated_files if not (export_root / filename).is_file()]
+    if missing_files:
+        fail("validation failed: generated files are missing: " + ", ".join(missing_files))
+
+    checksum_path = export_root / "checksums.sha256"
+    try:
+        checksum_text = checksum_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        fail(f"validation failed: could not read checksums.sha256: {exc}")
+    checksum_files = {
+        line.split("  ", 1)[1].strip()
+        for line in checksum_text.splitlines()
+        if "  " in line
+    }
+    expected_checksum_files = set(generated_files) - {"checksums.sha256"}
+    if checksum_files != expected_checksum_files:
+        fail("validation failed: checksums.sha256 does not cover every final root-level output file")
+
+
 def parse_marked_sections(content: str, expected_group: str) -> tuple[dict[str, str], str | None]:
     lines = content.splitlines(keepends=True)
     sections: dict[str, str] = {}
@@ -934,12 +1199,13 @@ def parse_marked_sections(content: str, expected_group: str) -> tuple[dict[str, 
     start_re = re.compile(
         rf"^<!-- GSD-EXPORT-SECTION:START {re.escape(expected_group)} (.+) -->\r?\n?$"
     )
+    any_marker_re = re.compile(r"^<!-- GSD-EXPORT-SECTION:(START|END) .+ -->\r?\n?$")
 
     while index < len(lines):
         line = lines[index]
         start_match = start_re.match(line)
         if not start_match:
-            if SECTION_START_PREFIX in line or SECTION_END_PREFIX in line:
+            if any_marker_re.match(line):
                 return {}, f"malformed section marker in {expected_group} target"
             index += 1
             continue
@@ -955,6 +1221,8 @@ def parse_marked_sections(content: str, expected_group: str) -> tuple[dict[str, 
                 index += 1
                 sections[section_id] = "".join(lines[start_index:index])
                 break
+            if any_marker_re.match(lines[index]):
+                return {}, f"nested or ambiguous section marker for {expected_group} {section_id}"
             index += 1
         else:
             return {}, f"missing end marker for {expected_group} {section_id}"
@@ -1076,6 +1344,18 @@ def build_incremental_content(
             content_by_file[target_file] = render_plan.content_by_file[target_file]
             continue
 
+        previous_target_hash = previous_output.get("target_hash")
+        actual_previous_target_hash = sha256_text(previous_content)
+        if previous_target_hash != actual_previous_target_hash:
+            reason = f"previous target content hash mismatch for {target_file}"
+            if strict:
+                fail(reason)
+            stats["incremental_fallback_occurred"] = True
+            stats["incremental_fallback_reasons"].append(reason)
+            stats["regenerated_target_files"].append(target_file)
+            content_by_file[target_file] = render_plan.content_by_file[target_file]
+            continue
+
         parsed_sections, parse_error = parse_marked_sections(previous_content, expected_group)
         if parse_error:
             if strict:
@@ -1145,6 +1425,22 @@ def build_incremental_content(
             continue
         if previous_output.get("output_kind") != "consolidated":
             continue
+        if strict:
+            previous_target = base_export / target_file
+            if not previous_target.is_file():
+                fail(f"previous export missing required target file {target_file}")
+            try:
+                previous_content = previous_target.read_bytes().decode("utf-8")
+            except (OSError, UnicodeDecodeError) as exc:
+                fail(f"could not read previous target {target_file}: {exc}")
+            if previous_output.get("target_hash") != sha256_text(previous_content):
+                fail(f"previous target content hash mismatch for {target_file}")
+            expected_group = previous_output.get("group")
+            if not isinstance(expected_group, str):
+                fail(f"previous lock group mismatch for {target_file}")
+            _, parse_error = parse_marked_sections(previous_content, expected_group)
+            if parse_error:
+                fail(f"{target_file}: {parse_error}")
         for previous_section in previous_output.get("sections", []):
             if isinstance(previous_section, dict) and isinstance(previous_section.get("section_id"), str):
                 stats["removed_sections"].append(
@@ -1242,6 +1538,7 @@ def generated_files_for(render_plan: RenderPlan) -> list[str]:
     content_files = sorted(
         set(BASE_CONTENT_FILES)
         | set(render_plan.stack_profile_sources_by_target)
+        | ({SKILL_SCRIPTS_TARGET} if SKILL_SCRIPTS_TARGET in render_plan.consolidated_outputs else set())
         | {"index.md"}
     )
     return sorted(set(METADATA_FILES) | set(content_files))
@@ -1318,8 +1615,11 @@ def build_export_manifest(
         "git_status_file": "git-status.txt",
         "index_file": "index.md",
         "export_lock_file": "export-lock.json",
+        "skill_scripts_file": SKILL_SCRIPTS_TARGET,
         "generated_files": generated_files,
         "consolidated_skill_sources": render_plan.skill_sources,
+        "consolidated_skill_script_sources": render_plan.skill_script_sources,
+        "skill_scripts_consolidated": len(render_plan.skill_script_sources),
         "consolidated_template_sources": render_plan.template_sources,
         "consolidated_stack_profile_sources": consolidated_stack_profile_sources,
         "root_file_sources": render_plan.copied_root_files,
@@ -1327,6 +1627,7 @@ def build_export_manifest(
         "warnings": render_plan.warnings,
         "counts": {
             "skills_consolidated": len(render_plan.skill_sources),
+            "skill_scripts_consolidated": len(render_plan.skill_script_sources),
             "templates_consolidated": len(render_plan.template_sources),
             "stack_profile_files_generated": len(render_plan.stack_profile_sources_by_target),
             "stack_profile_sources_consolidated": sum(
@@ -1387,6 +1688,10 @@ def print_dry_run(
     print()
     print(f"Skills to consolidate ({len(render_plan.skill_sources)}):")
     for path in render_plan.skill_sources:
+        print(f"  - {path}")
+    print()
+    print(f"Skill scripts to consolidate ({len(render_plan.skill_script_sources)}):")
+    for path in render_plan.skill_script_sources:
         print(f"  - {path}")
     print()
     print(f"Templates to consolidate ({len(render_plan.template_sources)}):")
@@ -1476,6 +1781,8 @@ def create_export(args: argparse.Namespace) -> Path:
                 )
 
     generated_files = generated_files_for(render_plan)
+    outputs = output_lock_entries(render_plan, content_by_file)
+    validate_content_plan(render_plan, content_by_file, outputs, generated_files)
 
     if args.dry_run:
         print_dry_run(
@@ -1494,7 +1801,6 @@ def create_export(args: argparse.Namespace) -> Path:
     export_root.mkdir(parents=True)
     write_content_files(export_root, content_by_file)
 
-    outputs = output_lock_entries(render_plan, content_by_file)
     export_lock = build_export_lock(
         repo_root,
         manifest_hash,
@@ -1528,11 +1834,13 @@ def create_export(args: argparse.Namespace) -> Path:
         json.dumps(export_manifest, indent=2, ensure_ascii=False) + "\n",
     )
     write_checksums(export_root, generated_files)
+    validate_written_export(export_root, generated_files)
 
     print(f"Export package created: {export_root}")
     print(
         "Counts: "
         f"skills={len(render_plan.skill_sources)}, "
+        f"skill_scripts={len(render_plan.skill_script_sources)}, "
         f"templates={len(render_plan.template_sources)}, "
         f"stack_profile_files={len(render_plan.stack_profile_sources_by_target)}, "
         f"stack_profile_sources={sum(len(sources) for sources in render_plan.stack_profile_sources_by_target.values())}, "

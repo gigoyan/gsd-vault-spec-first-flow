@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "export_schema_version": 1,
+  "exporter_version": 1,
+  "profile": "handoff",
+  "profile_version": 1,
+  "generated_at": "",
+  "repo_root": "",
+  "repo_root_hash_id": "",
+  "vault_project_id": "",
+  "git_branch": "",
+  "git_commit": "",
+  "git_dirty": false,
+  "compaction_policy_version": "1",
+  "redaction_policy_version": "1",
+  "outputs": [
+    {
+      "target_file": "state-snapshot.md",
+      "output_kind": "compacted",
+      "source_paths": [
+        ".planning/STATE.md"
+      ],
+      "source_hashes": {
+        ".planning/STATE.md": ""
+      },
+      "rendered_hash": "",
+      "compaction_policy_hash": "",
+      "redaction_policy_hash": "",
+      "source_references": [
+        ".planning/STATE.md#Current Status"
+      ]
+    }
+  ]
+}

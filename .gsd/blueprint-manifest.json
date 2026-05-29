@@ -72,6 +72,27 @@
       "description": "Deterministic script for creating file-count-friendly blueprint export packages."
     },
     {
+      "path": ".agents/skills/gsd-export-project-context/SKILL.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project context export skill instructions."
+    },
+    {
+      "path": ".agents/skills/gsd-export-project-context/agents/openai.yaml",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project context export child-agent configuration."
+    },
+    {
+      "path": ".agents/skills/gsd-export-project-context/scripts/export_project_context.py",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Deterministic script for creating root-only project context export packages."
+    },
+    {
       "path": ".agents/skills/gsd-map-codebase/SKILL.md",
       "owner": "blueprint_replace",
       "sync_strategy": "replace",
@@ -385,6 +406,55 @@
       "sync_strategy": "replace",
       "required": true,
       "description": "Project Idea Document template."
+    },
+    {
+      "path": ".planning/templates/project-context-export-contract.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project context export contract."
+    },
+    {
+      "path": ".planning/templates/project-context-export-lock-template.json",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project context export lock JSON template."
+    },
+    {
+      "path": ".planning/templates/project-context-export-manifest-template.json",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project context export manifest JSON template."
+    },
+    {
+      "path": ".planning/templates/project-context-source-index-template.json",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project context source index JSON template."
+    },
+    {
+      "path": ".planning/templates/project-context-state-snapshot-template.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project context state snapshot template."
+    },
+    {
+      "path": ".planning/templates/project-context-vault-context-template.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project context vault context template."
+    },
+    {
+      "path": ".planning/templates/project-context-work-history-summary-template.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project context work history summary template."
     },
     {
       "path": ".planning/templates/project-template.md",

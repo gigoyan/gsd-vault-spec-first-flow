@@ -1,0 +1,4 @@
+interface:
+  display_name: "GSD Export Project Context"
+  short_description: "Export a compact project context package"
+  default_prompt: "Use $gsd-export-project-context to create a root-only GSD project context export for ChatGPT Project sources, Codex handoff, or workflow continuation."

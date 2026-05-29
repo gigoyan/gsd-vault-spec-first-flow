@@ -90,6 +90,13 @@ The lock records what was installed.
 Lock entries for concrete installed files should include `path`, `owner`, `sync_strategy`, installed/source content hash when available, install/update action, and installed version/commit or timestamp when available.
 The lock must support future checks for whether a file was installed by Blueprint sync, what hash was installed, whether the target is now locally modified, and whether the file was removed from the current manifest.
 
+## Root-Only Blueprint Export
+
+The blueprint export package is a flattened review and upload representation, not an installable repository layout.
+It may include root-level consolidated files such as `skills.md`, `skill-scripts.md`, `templates.md`, and `stack-profiles-<domain>.md`.
+`skill-scripts.md` contains text/code implementations from `.agents/skills/**/scripts/**` for review and validation only; it must not recreate script folders or change runtime/project-preserve sync semantics.
+When generated, `skill-scripts.md` must be represented in `export-lock.json`, `export-manifest.json`, and `checksums.sha256`.
+
 ## Managed Block Rules
 
 For managed-block files:
