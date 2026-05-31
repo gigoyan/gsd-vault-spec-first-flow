@@ -1,6 +1,6 @@
 ---
 name: gsd-new-project
-description: Bootstrap a greenfield repository into the Codex-native GSD workflow by turning a project idea or sparse brief into the core planning artifacts. Use when a repo is new, planning files are missing, or the project charter and requirements need to be created or refreshed before milestone work begins.
+description: Bootstrap a greenfield repository into the GSD coding-agent workflow by turning a project idea or sparse brief into the core planning artifacts. Use when a repo is new, planning files are missing, or the project charter and requirements need to be created or refreshed before milestone work begins.
 ---
 
 # GSD New Project

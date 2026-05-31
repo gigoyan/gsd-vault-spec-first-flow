@@ -93,7 +93,7 @@ Every mapping child prompt must include wording equivalent to all of the followi
 
 - You are a delegated mapping child agent, not the mapping orchestrator.
 - Perform only the assigned mapping slice.
-- Do not call `spawn_agent`, `send_input`, `wait_agent`, or `close_agent`.
+- Do not spawn, delegate to, message, wait for, close, or orchestrate other agents. Only the root orchestrator may manage delegated agents.
 - Do not edit files unless the root prompt explicitly allows it.
 - Do not design implementation, migration, target architecture, or future milestone work.
 - Do not broaden into unrelated repository areas.

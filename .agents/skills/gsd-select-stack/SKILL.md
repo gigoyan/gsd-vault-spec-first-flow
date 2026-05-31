@@ -10,7 +10,7 @@ description: Select curated stack profiles and project-specific variant options 
 Run the stack-selection step of the GSD spec-first flow.
 Use this skill to resolve curated stack profiles, guide the user through supported variant choices, surface profile-backed `Suggested` recommendations when the profile metadata justifies them, and capture the selected stack in the project artifact without blocking on a fully finished Technical Specification.
 If the user explicitly asks to select the stack, this skill is allowed to act as the entry point and gather the minimum missing stack-selection context itself.
-Project-local output generation and profile-specific expansion remain derived follow-on work after stack selection is current; they are not part of this bounded evidence-aware selection step.
+Project-local runtime adapter generation and profile-specific expansion remain derived follow-on work after stack selection is current; they are not part of this bounded evidence-aware selection step.
 
 ## Workflow
 
@@ -39,13 +39,14 @@ Project-local output generation and profile-specific expansion remain derived fo
    - When a profile-backed recommendation bundle exists, show the recommended option combination first and make any override path explicit instead of hiding it in prose.
    - If an option would be easier to understand with an example, provide the compact example in normal chat text before or between the structured questions rather than bloating the button text.
 13. For existing projects, ask only for missing or future-target choices. Do not re-ask authoring mode, framework, repo shape, or similar decisions when the repo already proves them and the user is not asking to change them.
-14. Write or refresh the current project's stack-selection/configuration-package artifact using [`.planning/templates/stack-selection-and-configuration-package-template.md`](../../../.planning/templates/stack-selection-and-configuration-package-template.md). Capture selected profile IDs, selected options, recommendation sets reviewed, accepted or overridden combinations, fit reasoning, accepted tradeoffs, convention overlays shown, examples shown, and any explicitly reviewed inputs, while keeping `Suggested` recommendations and `Unknown` decision gaps visible until confirmation.
+14. Write or refresh the current project's stack-selection/configuration-package artifact using [`.planning/templates/stack-selection-and-configuration-package-template.md`](../../../.planning/templates/stack-selection-and-configuration-package-template.md). Capture selected profile IDs, selected options, target runtime decisions (`codex`, `claude_code`, or `both`), recommendation sets reviewed, accepted or overridden combinations, fit reasoning, accepted tradeoffs, convention overlays shown, examples shown, and any explicitly reviewed inputs, while keeping `Suggested` recommendations and `Unknown` decision gaps visible until confirmation.
 15. If bootstrap artifacts, the Project Idea Document, or the Technical Specification are still missing or draft after selection, stop after updating the stack-selection artifact and route explicitly to the next missing upstream artifact work.
-16. If the current request primarily asks for profile freshness validation, project-local `AGENTS.md` or `.codex` generation, or profile-specific output planning, stop after stack selection and route that work to a later bounded stack-selection follow-on. Keep the current skill limited to evidence-aware profile choice capture and explicit routing.
+16. If the current request primarily asks for profile freshness validation, project-local runtime adapter generation, or profile-specific output planning, stop after stack selection and route that work to a later bounded runtime-adapter generation or stack-selection follow-on. Keep the current skill limited to evidence-aware profile choice capture and explicit routing.
 
 ## Deferred Follow-On Boundary
 
-- Keep project-local `AGENTS.md` and `.codex` outputs as derived artifacts from the selected stack rather than blueprint truth, but defer their planning or generation until a later bounded stack-selection follow-on.
+- Keep project-local runtime instruction, agent, skill, and configuration outputs as derived artifacts from the selected stack rather than blueprint truth, but defer their planning or generation until a later bounded runtime-adapter generation follow-on.
+- Do not generate `.codex/**`, `.claude/**`, or `CLAUDE.md` inside `gsd-select-stack`. Selection captures runtime targets and routes generation to a later bounded runtime-adapter generation step.
 - Keep narrow official-doc freshness checks tied to selected profiles as later follow-on work instead of folding them into this selection step.
 - Keep profile-specific integration details, generated-output manifests, and profile-asset expansion outside this skill until the later stack-selection phase explicitly takes ownership.
 - When stack selection changes expected structure, commands, validation strategy, generated project-local outputs, or runtime surfaces, record a `$gsd-map-codebase` unified mapping follow-up candidate so mapping artifacts stay aligned with the selected stack.
@@ -54,8 +55,15 @@ Project-local output generation and profile-specific expansion remain derived fo
 
 - Updated stack-selection/configuration-package artifact for the current project, or an explicit stop reason when readiness is not satisfied.
 - Updated stack-selection/configuration-package artifact for the current project, with repo-proven inputs, recommended defaults, and unresolved decisions kept visibly `Confirmed`, `Suggested`, or `Unknown`.
+- Runtime adapter target decisions captured with:
+  - Target runtime(s): `codex` | `claude_code` | `both`
+  - Primary runtime:
+  - Generate Codex outputs later: `yes` | `no`
+  - Generate Claude Code outputs later: `yes` | `no`
+  - Runtime-specific constraints:
+  - Deferred generation follow-up:
 - Accepted or overridden profile-backed recommendation sets and convention overlays captured explicitly instead of being flattened into confirmed facts.
-- Explicit deferment when the request also needs profile freshness validation, project-local output generation, or profile-specific expansion work beyond stack-selection capture.
+- Explicit deferment when the request also needs profile freshness validation, project-local runtime adapter generation, or profile-specific expansion work beyond stack-selection capture.
 - Context-index impact: whether selected stack choices require creating or refreshing `.planning/CONTEXT_INDEX.md`.
 - Explicit next-step routing:
   - Bootstrap, Project Idea Document, or Technical Specification completion when stack selection is done but upstream artifacts are still incomplete.
@@ -64,7 +72,7 @@ Project-local output generation and profile-specific expansion remain derived fo
 
 ## Rules
 
-- Keep the skill focused on evidence-aware stack selection. Do not blur this skill into project bootstrap, codebase mapping, milestone planning, implementation, profile freshness review, or project-local output generation.
+- Keep the skill focused on evidence-aware stack selection. Do not blur this skill into project bootstrap, codebase mapping, milestone planning, implementation, profile freshness review, or project-local runtime adapter generation.
 - Do not auto-select a curated profile or option from message language, vague user preference, or community advice alone.
 - Do not silently convert a recommended profile or variant from `Suggested` to `Confirmed`.
 - Do not silently convert an accepted recommendation bundle into repo evidence; record the user acceptance or override explicitly.
@@ -73,7 +81,8 @@ Project-local output generation and profile-specific expansion remain derived fo
 - Do not require a fully completed Technical Specification before first-time stack selection if stack-selection readiness is already satisfied.
 - When the user explicitly asks to select the stack, do not reject the request just because bootstrap artifacts are missing.
 - Never rewrite the reusable blueprint stack profiles from ad hoc research during selection.
-- Treat project-local `AGENTS.md` and `.codex` outputs as derived-only follow-on work, never as reusable blueprint truth.
+- Treat project-local runtime instruction, agent, skill, and configuration outputs as derived-only follow-on work, never as reusable blueprint truth.
+- Do not generate `.codex/**`, `.claude/**`, or `CLAUDE.md` during stack selection.
 - Keep examples short and explanatory. Longer rationale belongs in the profile assets or references, not the project artifact.
 - End with explicit handoff text when another GSD step is required.
 
@@ -82,5 +91,5 @@ Project-local output generation and profile-specific expansion remain derived fo
 - Stack-selection readiness was checked before any stack questions were asked, and explicit user-requested stack selection was allowed to gather missing context inline.
 - The selected curated profiles and option IDs are recorded in the current project's stack-selection/configuration-package artifact together with fit reasoning and any explicitly reviewed inputs.
 - Any profile-backed recommendation bundles used during selection are recorded with their acceptance or override outcome.
-- Later profile-expansion work such as official-doc freshness checks and project-local output generation is explicitly deferred instead of being folded into this selection step.
+- Later profile-expansion work such as official-doc freshness checks and project-local runtime adapter generation is explicitly deferred instead of being folded into this selection step.
 - The final routing clearly points either to upstream artifact completion, `$gsd-plan-milestone`, or the missing prerequisite work.

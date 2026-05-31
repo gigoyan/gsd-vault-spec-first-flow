@@ -17,7 +17,7 @@ from typing import Any
 
 
 EXPORT_SCHEMA_VERSION = 1
-EXPORT_RENDERER_VERSION = 1
+EXPORT_RENDERER_VERSION = 2
 DEFAULT_OUTPUT_ROOT = ".gsd/exports"
 MANIFEST_RELATIVE_PATH = ".gsd/blueprint-manifest.json"
 SKILL_ROOT = ".agents/skills"
@@ -41,6 +41,7 @@ BASE_CONTENT_FILES = [
 ]
 ROOT_COPY_TARGETS = {
     "AGENTS.md": "agents.md",
+    "CLAUDE.md": "claude.md",
     "PROJECT.md": "project.md",
 }
 KNOWN_STACK_PROFILE_DOMAINS = {
@@ -628,7 +629,7 @@ def classify_manifest(
         seen.add(path)
 
         if is_generated_project_local(entry):
-            add_skip(skipped, path, "generated project-local output is not exported", entry)
+            add_skip(skipped, path, "generated project-local runtime adapter output is not exported", entry)
             continue
 
         if is_project_preserve(entry):
@@ -1025,9 +1026,9 @@ def build_index_md() -> str:
 
 This package is a root-only export of the reusable GSD blueprint for ChatGPT Project upload or portable review. It is a flattened representation, not the original repository layout.
 
-The source repository contains directories such as `.agents/skills/**`, `.planning/templates/**`, `.agents/stack-profiles/**`, `.gsd/**`, plus root files such as `AGENTS.md` and `PROJECT.md`. This export intentionally consolidates those sources into a small set of root files, so separate skill folders, script folders, template files, stack-profile folders, runtime planning files, and generated `.codex` outputs are intentionally absent.
+The source repository contains directories such as `.agents/skills/**`, `.planning/templates/**`, `.agents/stack-profiles/**`, `.gsd/**`, plus root files such as `AGENTS.md`, `CLAUDE.md`, and `PROJECT.md`. This export intentionally consolidates those sources into a small set of root files, so separate skill folders, script folders, template files, stack-profile folders, runtime planning files, and generated runtime adapter outputs such as `.codex/**` and generated `.claude/**` are intentionally absent.
 
-Consolidated sections in `skills.md`, `skill-scripts.md`, `templates.md`, and `stack-profiles-<domain>.md` represent original source files. `skill-scripts.md` contains text/code script implementations used by skills. It is included for review, validation, and portable understanding. It does not recreate the original executable folder layout. Skipped files are intentional and are recorded in `export-manifest.json`. Runtime planning files, milestones, phases, verification artifacts, `.codex` outputs, and project history are not exported. `export-lock.json` tracks source-to-section mappings for incremental export. `export-manifest.json` summarizes the export run. `checksums.sha256` covers final root-level export files except itself.
+Consolidated sections in `skills.md`, `skill-scripts.md`, `templates.md`, and `stack-profiles-<domain>.md` represent original source files. `skill-scripts.md` contains text/code script implementations used by skills. It is included for review, validation, and portable understanding. It does not recreate the original executable folder layout. Skipped files are intentional and are recorded in `export-manifest.json`. Runtime planning files, milestones, phases, verification artifacts, generated runtime adapter outputs such as `.codex/**` and generated `.claude/**`, and project history are not exported. `export-lock.json` tracks source-to-section mappings for incremental export. `export-manifest.json` summarizes the export run. `checksums.sha256` covers final root-level export files except itself.
 
 | Original GSD source                                                            | Export representation                                                                  |
 | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
@@ -1036,11 +1037,13 @@ Consolidated sections in `skills.md`, `skill-scripts.md`, `templates.md`, and `s
 | `.planning/templates/**`                                                       | sections inside `templates.md`                                                         |
 | `.agents/stack-profiles/<domain>/**`                                           | sections inside `stack-profiles-<domain>.md`                                           |
 | `AGENTS.md`                                                                    | copied as `agents.md`                                                                  |
+| `CLAUDE.md`                                                                    | copied as `claude.md`                                                                  |
 | `PROJECT.md`                                                                   | copied as `project.md`                                                                 |
 | `.gsd/blueprint-manifest.json`                                                 | represented through `export-manifest.json` and `export-lock.json`, not copied directly |
 | `.agents/skills/**/agents/openai.yaml`                                         | skipped intentionally and recorded in `export-manifest.json`                           |
 | `.planning/STATE.md`, `.planning/ROADMAP.md`, milestones, phases, verification | not exported because they are runtime/project history artifacts                        |
-| `.codex/**`                                                                    | not exported because generated project-local files are ignored                         |
+| `.codex/**`                                                                    | not exported because generated project-local runtime adapter files are ignored         |
+| `.claude/settings.json`, `.claude/agents/**`, `.claude/skills/**`, `.claude/rules/**`, `.claude/hooks/**` | not exported because generated project-local runtime adapter files are ignored |
 """
 
 
@@ -1538,6 +1541,7 @@ def generated_files_for(render_plan: RenderPlan) -> list[str]:
     content_files = sorted(
         set(BASE_CONTENT_FILES)
         | set(render_plan.stack_profile_sources_by_target)
+        | set(render_plan.copy_outputs)
         | ({SKILL_SCRIPTS_TARGET} if SKILL_SCRIPTS_TARGET in render_plan.consolidated_outputs else set())
         | {"index.md"}
     )

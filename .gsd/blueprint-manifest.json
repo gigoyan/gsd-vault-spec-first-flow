@@ -93,6 +93,20 @@
       "description": "Deterministic script for creating root-only project context export packages."
     },
     {
+      "path": ".agents/skills/gsd-generate-runtime-adapters/SKILL.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Runtime adapter generation skill instructions."
+    },
+    {
+      "path": ".agents/skills/gsd-generate-runtime-adapters/scripts/generate_runtime_adapters.py",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Deterministic script for generating project-local Codex and Claude Code runtime adapter outputs."
+    },
+    {
       "path": ".agents/skills/gsd-map-codebase/SKILL.md",
       "owner": "blueprint_replace",
       "sync_strategy": "replace",
@@ -324,6 +338,41 @@
       "description": "Project-local Codex configuration template generated after stack selection."
     },
     {
+      "path": ".agents/stack-profiles/backend/nodejs-service/assets/project-local-claude-settings.template.json",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project-local Claude Code settings template generated after runtime adapter generation."
+    },
+    {
+      "path": ".agents/stack-profiles/backend/nodejs-service/assets/project-local-claude-agent-backend-implementer.template.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project-local Claude Code backend implementer subagent template."
+    },
+    {
+      "path": ".agents/stack-profiles/backend/nodejs-service/assets/project-local-claude-agent-backend-reviewer.template.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project-local Claude Code backend reviewer subagent template."
+    },
+    {
+      "path": ".agents/stack-profiles/backend/nodejs-service/assets/project-local-claude-agent-backend-debugger.template.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project-local Claude Code backend debugger subagent template."
+    },
+    {
+      "path": ".agents/stack-profiles/backend/nodejs-service/assets/project-local-claude-agent-api-framework-specialist.template.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Project-local Claude Code API framework specialist subagent template."
+    },
+    {
       "path": ".agents/stack-profiles/backend/nodejs-service/assets/project-structure-examples.md",
       "owner": "blueprint_replace",
       "sync_strategy": "replace",
@@ -357,6 +406,13 @@
       "sync_strategy": "replace",
       "required": true,
       "description": "Blueprint sync verification checklist template."
+    },
+    {
+      "path": ".planning/templates/agent-runtime-adapter-contract.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Agent runtime adapter contract."
     },
     {
       "path": ".planning/templates/codebase-map-template.md",
@@ -674,6 +730,13 @@
       "description": "Mixed local agent instructions; update only marked GSD blueprint blocks."
     },
     {
+      "path": "CLAUDE.md",
+      "owner": "bootstrap_then_managed_block",
+      "sync_strategy": "bootstrap_then_managed_block",
+      "required": true,
+      "description": "Claude Code root adapter surface; create when missing, then update only marked GSD blueprint blocks while preserving project-owned local settings."
+    },
+    {
       "path": "README.md",
       "owner": "project_preserve",
       "sync_strategy": "preserve",
@@ -721,6 +784,41 @@
       "sync_strategy": "ignore",
       "required": false,
       "description": "Project-local Codex agent configurations generated after stack selection; ignored by blueprint sync."
+    },
+    {
+      "path": ".claude/settings.json",
+      "owner": "generated_project_local",
+      "sync_strategy": "ignore",
+      "required": false,
+      "description": "Project-local Claude Code settings generated after runtime adapter generation; ignored by blueprint sync."
+    },
+    {
+      "path": ".claude/agents/*.md",
+      "owner": "generated_project_local",
+      "sync_strategy": "ignore",
+      "required": false,
+      "description": "Project-local Claude Code subagents generated after runtime adapter generation; ignored by blueprint sync."
+    },
+    {
+      "path": ".claude/skills/**",
+      "owner": "generated_project_local",
+      "sync_strategy": "ignore",
+      "required": false,
+      "description": "Project-local Claude Code skills projected after runtime adapter generation; ignored by blueprint sync."
+    },
+    {
+      "path": ".claude/rules/**",
+      "owner": "generated_project_local",
+      "sync_strategy": "ignore",
+      "required": false,
+      "description": "Optional project-local Claude Code rules generated after runtime adapter generation; ignored by blueprint sync."
+    },
+    {
+      "path": ".claude/hooks/**",
+      "owner": "generated_project_local",
+      "sync_strategy": "ignore",
+      "required": false,
+      "description": "Optional project-local Claude Code hooks generated after runtime adapter generation; ignored by blueprint sync."
     }
   ]
 }

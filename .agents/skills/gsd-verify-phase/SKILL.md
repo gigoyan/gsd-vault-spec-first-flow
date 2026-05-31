@@ -1,6 +1,6 @@
 ---
 name: gsd-verify-phase
-description: Verify a completed execution phase against its explicit done criteria and acceptance checks inside the Codex-native GSD workflow. Use after phase implementation when the next step is to run checks, assess results, write a verification artifact, and decide pass, fail, or partial.
+description: Verify a completed execution phase against its explicit done criteria and acceptance checks inside the GSD coding-agent workflow. Use after phase implementation when the next step is to run checks, assess results, write a verification artifact, and decide pass, fail, or partial.
 ---
 
 # GSD Verify Phase
@@ -60,7 +60,7 @@ Use this skill to compare implementation results against the phase and milestone
 - In the composite step, do not create the next phase on `fail`, `partial`, blocked verification, or completed milestone.
 - In the composite step, do not execute the next phase, continue the milestone loop, orchestrate, delegate, or route beyond creating the single next bounded phase.
 - When invoked as a delegated child under `$gsd-run-milestone` without the explicit composite assignment, limit the work to verification. Do not orchestrate, delegate, create a follow-up phase, or execute implementation yourself.
-- As a delegated child, do not call `spawn_agent`, `send_input`, `wait_agent`, or `close_agent`.
+- As a delegated child, do not spawn, delegate to, message, wait for, close, or orchestrate other agents. Only the root orchestrator may manage delegated agents.
 - If the phase passes and the milestone is still incomplete, set `Phase Status: completed`, set `Milestone Status: in_progress`, and emit a `Next-Step Prompt` that sends the next agent to `$gsd-plan-milestone` to define the next bounded phase inside the current milestone.
 - In the explicit `$gsd-run-milestone` composite step, replace that handoff by creating the next bounded phase directly in the same child response, then emit routing output for the root orchestrator to execute that new active phase.
 - If verification shows the active milestone is complete, set `Milestone Status: completed` and do not emit a `Next-Step Prompt`. Instead, state briefly that the milestone is complete and suggest the next incomplete milestone or milestones from `.planning/ROADMAP.md` if any exist.

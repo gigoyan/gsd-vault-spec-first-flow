@@ -42,7 +42,11 @@
 - CODEBASE_MAP.md project-owned content preserved:
 - CONTEXT_INDEX.md preserved:
 - Milestones/phases/verification preserved:
-- Generated `.codex` outputs untouched:
+- Generated `.codex/**` outputs untouched:
+- Generated `.claude/**` outputs untouched:
+- CLAUDE.md blueprint block updated only when approved:
+- CLAUDE.md project-owned content preserved:
+- Removed-from-manifest generated runtime adapter files preserved:
 - Project-owned files preserved:
 - Obsidian vault untouched:
 

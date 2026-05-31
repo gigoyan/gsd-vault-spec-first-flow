@@ -1,6 +1,6 @@
 ---
 name: gsd-execute-phase
-description: Implement the currently active phase from the Codex-native GSD workflow while staying strictly inside its defined scope. Use when an active phase already exists and the next step is to change code, configuration, or docs according to the phase file rather than create a new plan.
+description: Implement the currently active phase from the GSD coding-agent workflow while staying strictly inside its defined scope. Use when an active phase already exists and the next step is to change code, configuration, or docs according to the phase file rather than create a new plan.
 ---
 
 # GSD Execute Phase
@@ -57,7 +57,7 @@ Use this skill after milestone planning is complete and before verification has 
 - Do not write durable memory from this skill; execution only produces session-save candidates for later review.
 - At a meaningful execution stop point, do not leave durable-memory follow-up vague. Record whether `gsd-session-save` is warranted and why, or explicitly record `none`.
 - When invoked as a delegated child under `$gsd-run-milestone`, perform execution only. Do not orchestrate, do not delegate, and do not continue into verification or replanning yourself.
-- As a delegated child, do not call `spawn_agent`, `send_input`, `wait_agent`, or `close_agent`.
+- As a delegated child, do not spawn, delegate to, message, wait for, close, or orchestrate other agents. Only the root orchestrator may manage delegated agents.
 - Report what changed, the validation set created or updated, which decisive validation ran first, any additional pre-implementation checks, and what broader checks confirmed the phase.
 - End the response with explicit `Phase Status: executed` and `Milestone Status: in_progress` lines, then hand off to `$gsd-verify-phase` with a compact `Next-Step Prompt` that tells the next agent to verify the active phase against its done criteria and validation evidence.
 - After returning the required outputs, stop immediately. Do not begin verification, planning, or any additional routing work yourself.

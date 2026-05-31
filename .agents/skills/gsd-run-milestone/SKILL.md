@@ -73,7 +73,7 @@ This skill is for user-requested milestone automation where the main session sho
 Every delegated child prompt should make the child role explicit. Use wording equivalent to all of the following:
 - You are a delegated child agent, not the milestone orchestrator.
 - Perform only the assigned child action: planning, execution, or the explicit `$gsd-run-milestone` verification-and-next-phase-planning composite step.
-- Do not call `spawn_agent`, `send_input`, `wait_agent`, or `close_agent`.
+- Do not spawn, delegate to, message, wait for, close, or orchestrate other agents. Only the root orchestrator may manage delegated agents.
 - If assigned execution, do not perform verification or planning.
 - If assigned the verification-and-next-phase-planning composite step, first verify the active phase using `$gsd-verify-phase` rules. If verification passes and the milestone is incomplete, create exactly one next bounded phase in the same active milestone using `$gsd-plan-milestone` rules, then stop.
 - If assigned the composite step, do not create the next phase on `fail`, `partial`, blocked verification, or completed milestone.

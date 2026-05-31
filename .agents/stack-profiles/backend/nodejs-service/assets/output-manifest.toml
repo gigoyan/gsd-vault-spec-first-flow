@@ -10,19 +10,33 @@ examples_source = "project-structure-examples.md"
 
 [generated_outputs]
 codex_config_template = "project-local-codex-config.template.toml"
+claude_settings_template = "project-local-claude-settings.template.json"
 always_generate_agent_templates = [
   "project-local-agent-backend-implementer.template.toml",
   "project-local-agent-backend-reviewer.template.toml",
   "project-local-agent-backend-debugger.template.toml"
 ]
+always_generate_claude_agent_templates = [
+  "project-local-claude-agent-backend-implementer.template.md",
+  "project-local-claude-agent-backend-reviewer.template.md",
+  "project-local-claude-agent-backend-debugger.template.md"
+]
 framework_agent_template = "project-local-agent-api-framework-specialist.template.toml"
+framework_claude_agent_template = "project-local-claude-agent-api-framework-specialist.template.md"
 
-[generated_outputs.targets]
+[generated_outputs.targets.codex]
 codex_config = ".codex/config.toml"
 backend_implementer = ".codex/agents/backend-implementer.toml"
 backend_reviewer = ".codex/agents/backend-reviewer.toml"
 backend_debugger = ".codex/agents/backend-debugger.toml"
 api_framework_specialist = ".codex/agents/api-framework-specialist.toml"
+
+[generated_outputs.targets.claude_code]
+settings = ".claude/settings.json"
+backend_implementer = ".claude/agents/backend-implementer.md"
+backend_reviewer = ".claude/agents/backend-reviewer.md"
+backend_debugger = ".claude/agents/backend-debugger.md"
+api_framework_specialist = ".claude/agents/api-framework-specialist.md"
 
 [generated_outputs.framework_agent_rules]
 generate_for = ["fastify", "express"]
@@ -66,24 +80,48 @@ notes = [
 
 [[roles]]
 role_id = "backend-implementer"
+apply_when = "always"
+
+[roles.targets.codex]
 target = ".codex/agents/backend-implementer.toml"
 template = "project-local-agent-backend-implementer.template.toml"
-apply_when = "always"
+
+[roles.targets.claude_code]
+target = ".claude/agents/backend-implementer.md"
+template = "project-local-claude-agent-backend-implementer.template.md"
 
 [[roles]]
 role_id = "backend-reviewer"
+apply_when = "always"
+
+[roles.targets.codex]
 target = ".codex/agents/backend-reviewer.toml"
 template = "project-local-agent-backend-reviewer.template.toml"
-apply_when = "always"
+
+[roles.targets.claude_code]
+target = ".claude/agents/backend-reviewer.md"
+template = "project-local-claude-agent-backend-reviewer.template.md"
 
 [[roles]]
 role_id = "backend-debugger"
+apply_when = "always"
+
+[roles.targets.codex]
 target = ".codex/agents/backend-debugger.toml"
 template = "project-local-agent-backend-debugger.template.toml"
-apply_when = "always"
+
+[roles.targets.claude_code]
+target = ".claude/agents/backend-debugger.md"
+template = "project-local-claude-agent-backend-debugger.template.md"
 
 [[roles]]
 role_id = "api-framework-specialist"
+apply_when = "http_framework in ['fastify', 'express']"
+
+[roles.targets.codex]
 target = ".codex/agents/api-framework-specialist.toml"
 template = "project-local-agent-api-framework-specialist.template.toml"
-apply_when = "http_framework in ['fastify', 'express']"
+
+[roles.targets.claude_code]
+target = ".claude/agents/api-framework-specialist.md"
+template = "project-local-claude-agent-api-framework-specialist.template.md"

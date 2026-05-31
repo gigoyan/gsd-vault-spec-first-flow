@@ -1,6 +1,6 @@
 ---
 name: gsd-quick-task
-description: Handle a small, low-risk, bounded task inside the Codex-native GSD workflow without creating a full milestone. Use for narrow fixes, simple config changes, or single-file adjustments that can be planned, executed, and verified in one short pass.
+description: Handle a small, low-risk, bounded task inside the GSD coding-agent workflow without creating a full milestone. Use for narrow fixes, simple config changes, or single-file adjustments that can be planned, executed, and verified in one short pass.
 ---
 
 # GSD Quick Task

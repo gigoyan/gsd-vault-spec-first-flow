@@ -7,17 +7,21 @@ Use this contract to define reusable stack-aware blueprint data after the curren
 This contract exists so the reusable GSD package can hold curated stack guidance without shipping project-specific runtime outputs.
 
 ## Design Basis
-- Put durable project guidance in `AGENTS.md`, because Codex reads `AGENTS.md` files before work and layers them by scope.
-- Put repeatable task workflows in skills, because skills package instructions, resources, and optional scripts with progressive disclosure.
-- Keep skills narrowly scoped, because Codex matches them by `description` and the official guidance says those descriptions need clear scope and boundaries.
-- Put project-local runtime and tool configuration in `.codex/config.toml` when a current project requires generated local Codex configuration.
-- If project-local `.codex/` outputs are required for the current project and the repository does not yet contain a `.codex/` directory, create it inside that project’s local runtime copy at generation time.
-- Do not use repository `.codex/` files as the source of truth for user-facing conversation-language policy; that policy is defined in `AGENTS.md`.
-- Use tools and MCP only when they materially improve the workflow, because Codex supports built-in tools, tool search, function calling, and remote MCP for extending agent capabilities.
-- Keep the reusable blueprint generic. Generate project-local `.codex` outputs only after the current project has selected a stack and variants.
+- Put durable project guidance in runtime instruction surfaces:
+  - Codex: `AGENTS.md`
+  - Claude Code: `CLAUDE.md`
+- Put repeatable task workflows in skills.
+- Keep skills narrowly scoped because runtime skill discovery depends on concise descriptions.
+- Put project-local runtime/tool configuration in runtime adapter outputs:
+  - Codex: `.codex/config.toml`, `.codex/agents/*.toml`
+  - Claude Code: `.claude/settings.json`, `.claude/agents/*.md`, `.claude/skills/**`
+- If project-local runtime adapter outputs are required for the current project and the repository does not yet contain the target runtime directory, create it inside that project's local runtime copy at generation time.
+- Do not use generated runtime adapter files as the source of truth for user-facing conversation-language policy; that policy is defined in project instruction surfaces.
+- Use tools and MCP only when they materially improve the workflow and are supported by the selected runtime.
+- Keep the reusable blueprint generic. Generate project-local runtime adapter outputs only after the current project has selected a stack, variants, and target runtime(s).
 
 ## Contract Goals
-- Capture enough information to generate stack-aware project instructions, skills, and project-local Codex configuration.
+- Capture enough information to generate stack-aware project instructions, skills, and project-local runtime adapter configuration.
 - Separate reusable blueprint truth from project-specific selections.
 - Support multiple valid patterns for one stack through explicit variant options.
 - Support profile-backed `Suggested` defaults, recommended option combinations, and convention bundles without silently promoting them to `Confirmed`.
@@ -27,7 +31,8 @@ This contract exists so the reusable GSD package can hold curated stack guidance
 ## Storage Rules
 - Store reusable stack profiles and variant options in the blueprint, not in project state files.
 - Store project-specific selections in the current project's spec artifacts and stack-selection artifact.
-- Store generated project-local Codex files only in the current project's local runtime copy after selection is complete.
+- Store generated project-local runtime adapter files only in the current project's local runtime copy after selection is complete.
+- Generated runtime adapter files must not become reusable stack-profile truth.
 - Do not store stack profile data in the vault unless the project itself has a durable project-specific decision worth saving there.
 
 ## Stack Profile Contract
@@ -118,9 +123,10 @@ Each supported stack profile must define the fields below.
   - `deferred_follow_on`: Later bounded work that may use this convention after stack selection is confirmed.
 
 ### Generation Targets
-- `agents_outputs`: The `AGENTS.md` instruction fragments this profile can generate or update.
+- `instruction_outputs`: Runtime instruction fragments this profile can generate or update.
 - `skill_outputs`: Skills this profile can create, enable, or tailor.
-- `config_outputs`: `.codex/config.toml` or related project-local config fragments this profile can generate.
+- `config_outputs`: Runtime adapter configuration fragments this profile can generate, such as Codex `.codex/config.toml` or Claude Code `.claude/settings.json`.
+- `agent_outputs`: Runtime agent or subagent outputs this profile can generate, such as Codex `.codex/agents/*.toml` or Claude Code `.claude/agents/*.md`.
 - `template_outputs`: Project structure, starter docs, or code templates this profile can generate.
 - `command_outputs`: Standard setup, lint, test, build, and verification commands this profile contributes.
 - `review_checklist_outputs`: Review and verification checklists this profile contributes.
@@ -157,7 +163,7 @@ Each option on a profile axis must define the fields below.
 - `tooling_effects`: How this option changes tooling or required checks.
 - `code_style_effects`: How this option changes naming, patterns, test style, or implementation conventions.
 - `skill_effects`: Skills that should be generated, enabled, or adjusted because of this choice.
-- `config_effects`: Project-local Codex config or role changes that follow from this choice.
+- `config_effects`: Project-local runtime adapter config or role changes that follow from this choice.
 
 ### Compatibility And Selection Rules
 - `recommended`: Whether this is the recommended option for a common default case.
@@ -197,13 +203,17 @@ Each option on a profile axis must define the fields below.
 - Reusable stack profile data belongs in the blueprint.
 - Selected profile IDs and selected option IDs belong in the current project's stack-selection artifact.
 - The project's Project Idea Document and Technical Specification should record only project-relevant reasoning and architecture decisions, not the full reusable profile payload.
-- Generated `AGENTS.md`, skills, and `.codex` config should be derived outputs, not the canonical source of stack truth.
+- Generated runtime instruction, skill, agent, and configuration outputs should be derived outputs, not the canonical source of stack truth.
 
 ## Minimum Project Artifact Capture
 When a project selects a stack profile and variant options, capture at least:
 - selected `profile_id`
 - selected `version`
 - selected `axis_id` to `option_id` mappings
+- target runtime(s): `codex`, `claude_code`, or `both`
+- primary runtime, when one is preferred
+- runtime adapter outputs requested
+- runtime-specific constraints or disabled outputs
 - why each selected option fits the current project
 - profile-backed recommendation sets reviewed, accepted, declined, or deferred
 - convention overlays shown or accepted
@@ -215,7 +225,7 @@ When a project selects a stack profile and variant options, capture at least:
 - Start with a small set of officially supported stack profiles.
 - Give each profile only the variant axes that genuinely matter for project shape, code conventions, or agent behavior.
 - Prefer one focused skill per recurring workflow instead of one broad skill per entire stack.
-- Keep `AGENTS.md` outputs concise and behavioral.
+- Keep generated instruction outputs concise and behavioral.
 - Keep long rationale, examples, and references in skill docs or profile references rather than bloating generated instructions.
 
 ## Suggested Future Layout

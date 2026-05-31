@@ -39,7 +39,7 @@ Marker format:
 - Preserve all `GSD-PROJECT` content exactly.
 - If required markers are missing, produce a proposed insertion diff and require explicit review before inserting markers.
 - Do not use this strategy for active runtime state.
-- Examples: `PROJECT.md`, `.planning/CODEBASE_MAP.md`.
+- Examples: `PROJECT.md`, `.planning/CODEBASE_MAP.md`, `CLAUDE.md`.
 
 ### bootstrap_if_missing
 - Starter file copied only when missing.
@@ -49,6 +49,8 @@ Marker format:
 ### generated_project_local
 - Generated for the current project only.
 - Not synced from reusable blueprint.
+- Examples: `.codex/**`, `.claude/settings.json`, `.claude/agents/**`, `.claude/skills/**`, `.claude/rules/**`, `.claude/hooks/**`.
+- `CLAUDE.md` is a bootstrap-then-managed-block project-facing runtime adapter surface, not generated_project_local.
 
 ## Sync Safety Rules
 
@@ -56,12 +58,13 @@ Marker format:
 - Compare real content for Blueprint-owned files; file presence alone is not enough.
 - Compare only marked Blueprint-managed block content for managed and bootstrap-then-managed-block files.
 - `PROJECT.md` and `.planning/CODEBASE_MAP.md` may receive reusable guidance updates only through `bootstrap_then_managed_block`; their project-owned content must be preserved exactly.
+- `CLAUDE.md` may receive reusable Claude runtime adapter guidance updates only through `bootstrap_then_managed_block`; its `GSD-PROJECT` local settings and other project-owned content must be preserved exactly.
 - Existing `.planning/STATE.md` is active runtime state. Blueprint sync may create it only when missing and must never update it when it exists.
 - Target project `README.md` is project-owned. Blueprint sync must not create, overwrite, replace, or managed-block-update target `README.md`.
 - A missing target `README.md` must not be treated as a missing GSD blueprint file.
 - Reusable GSD usage guidance belongs in blueprint documentation, `AGENTS.md`, skills, templates, or contracts, not in target project `README.md`.
 - Never overwrite files with uncommitted project changes without surfacing a diff and asking for approval.
-- Never update `.codex` project-local outputs through blueprint sync.
+- Never update `.codex/**` or generated `.claude/**` project-local runtime outputs through blueprint sync.
 - Never copy milestone, phase, verification, roadmap history, or state history from the blueprint into a project repository.
 - Detect files previously installed by Blueprint sync but removed from the current manifest by comparing target lock entries with the current source manifest.
 - Do not delete anything unless it is a proven Blueprint-installed delete candidate, local modification can be safely ruled out, and the user explicitly approves deletion.
@@ -123,6 +126,7 @@ For bootstrap-then-managed-block files:
 - If expected markers are missing, propose a marker insertion diff and require explicit approval before changing the file.
 - Do not compare project-owned content as drift and do not use project-owned differences as permission to overwrite the file.
 - `.planning/STATE.md` must not use managed blocks; it remains bootstrap-if-missing active runtime state.
+- `CLAUDE.md` uses this strategy for the `GSD-BLUEPRINT: claude-runtime-adapter` block; preserve the `GSD-PROJECT: claude-local-settings` block and any other project-owned content exactly.
 
 ## Audit And Drift Rules
 
@@ -133,6 +137,7 @@ For bootstrap-then-managed-block files:
 - Drift in bootstrap-then-managed-block files is reported only for the `GSD-BLUEPRINT` block when markers exist.
 - Missing markers in bootstrap-then-managed-block files must be reported as a marker insertion requirement, not as permission to overwrite the whole file.
 - Generated project-local files are ignored, not compared.
+- Generated project-local runtime adapter outputs include `.codex/**` and generated `.claude/**`.
 
 ## Removed-From-Manifest Rules
 
@@ -141,6 +146,7 @@ For bootstrap-then-managed-block files:
 - Classify each candidate as `delete candidate`, `preserve because project-owned/runtime`, `conflict because locally modified`, `ignore because generated_project_local`, or `unknown ownership`.
 - Delete only concrete files previously installed by Blueprint sync, not protected by project/runtime/generated ownership, unchanged from the installed hash when hash evidence exists, and explicitly approved by the user.
 - If local modification cannot be determined, preserve and report a manual-review conflict.
+- Never delete generated runtime adapter files such as `.codex/**` or generated `.claude/**`, even if they appear in old lock metadata, unless the user explicitly approves a runtime-output cleanup task.
 - Never delete managed-block host files, bootstrap/project surfaces, runtime/history files, generated project-local files, wildcard entries, or files not recorded in the lock.
 
 ## Verification
@@ -154,6 +160,7 @@ A sync or audit must report:
 - managed block comparisons performed
 - bootstrap block comparisons performed
 - removed-from-manifest files checked
+- removed-from-manifest generated runtime adapter files preserved
 - files replaced
 - files created
 - files deleted
@@ -161,6 +168,8 @@ A sync or audit must report:
 - files preserved
 - managed blocks updated
 - bootstrap guidance blocks updated
+- `CLAUDE.md` blueprint block updated only when approved
+- `CLAUDE.md` project-owned content preserved
 - conflicts
 - skipped files
 - approval obtained before mutations

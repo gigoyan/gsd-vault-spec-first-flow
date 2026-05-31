@@ -20,7 +20,7 @@ from typing import Any
 
 SCHEMA_VERSION = 1
 EXPORT_SCHEMA_VERSION = 1
-EXPORTER_VERSION = 1
+EXPORTER_VERSION = 2
 COMPACTION_POLICY_VERSION = "1"
 REDACTION_POLICY_VERSION = "1"
 SINGLE_RAW_FILE_THRESHOLD = 40 * 1024
@@ -38,6 +38,11 @@ BASE_FILES = {
     "codebase-map.md": ".planning/CODEBASE_MAP.md",
     "context-index.md": ".planning/CONTEXT_INDEX.md",
 }
+ROOT_RUNTIME_INSTRUCTION_FILES = {
+    "agents.md": "AGENTS.md",
+    "claude.md": "CLAUDE.md",
+}
+OPTIONAL_ROOT_RUNTIME_INSTRUCTION_FILES = {"claude.md"}
 ALT_SOURCE_PATHS = {
     "project-idea-document.md": [
         ".planning/PROJECT_IDEA_DOCUMENT.md",
@@ -70,6 +75,7 @@ PROFILE_FILES = {
     "handoff": [
         "index.md",
         *BASE_FILES.keys(),
+        "agents.md",
         "state-snapshot.md",
         "vault-context.md",
         "roadmap-summary.md",
@@ -86,6 +92,7 @@ PROFILE_FILES = {
     "full-context": [
         "index.md",
         *BASE_FILES.keys(),
+        "agents.md",
         "state-snapshot.md",
         "vault-context.md",
         "roadmap-summary.md",
@@ -103,6 +110,7 @@ PROFILE_FILES = {
     "raw-plus-summary": [
         "index.md",
         *BASE_FILES.keys(),
+        "agents.md",
         "state-snapshot.md",
         "vault-context.md",
         "roadmap-summary.md",
@@ -127,6 +135,7 @@ METADATA_FILES = {"index.md", "source-index.json", "export-lock.json", "export-m
 SKIP_DIRS = {
     ".git",
     ".codex",
+    ".claude",
     "node_modules",
     "vendor",
     "dist",
@@ -398,6 +407,10 @@ def resolve_project_file(repo_root: Path, target_file: str, sources: dict[str, S
         if source is not None:
             return source
     return None
+
+
+def resolve_root_runtime_instruction(repo_root: Path, target_file: str, sources: dict[str, Source]) -> Source | None:
+    return source_from_repo(repo_root, ROOT_RUNTIME_INSTRUCTION_FILES[target_file], sources)
 
 
 def discover_history(repo_root: Path, sources: dict[str, Source]) -> list[Source]:
@@ -982,11 +995,35 @@ def redact_content(content: str, enabled: bool) -> tuple[str, int]:
     return redacted, matches
 
 
+def runtime_metadata(sources: dict[str, Source]) -> dict[str, Any]:
+    included_paths = {source.path for source in sources.values() if source.included_in}
+    runtime_surfaces = {
+        "codex": "AGENTS.md" in included_paths,
+        "claude_code": "CLAUDE.md" in included_paths,
+        "generated_codex": False,
+        "generated_claude": False,
+    }
+    target_runtimes = [
+        runtime
+        for runtime in ("codex", "claude_code")
+        if runtime_surfaces[runtime]
+    ]
+    return {
+        "target_runtimes": target_runtimes,
+        "runtime_surfaces_included": runtime_surfaces,
+        "runtime_exclusion_policy": "Generated project-local runtime adapter outputs such as .codex/** and generated .claude/** are excluded by default.",
+    }
+
+
 def source_index(profile: str, version: int, sources: dict[str, Source], claims: list[dict[str, Any]]) -> dict[str, Any]:
+    metadata = runtime_metadata(sources)
     return {
         "schema_version": SCHEMA_VERSION,
         "profile": profile,
         "profile_version": version,
+        "target_runtimes": metadata["target_runtimes"],
+        "runtime_surfaces_included": metadata["runtime_surfaces_included"],
+        "runtime_exclusion_policy": metadata["runtime_exclusion_policy"],
         "sources": [
             {
                 "source_id": source.source_id,
@@ -1273,8 +1310,8 @@ def build_index(
 ) -> str:
     best_use = {
         "minimal": "small ChatGPT Project source package",
-        "handoff": "Codex/agent continuation",
-        "full-context": "larger project discussion and onboarding",
+        "handoff": "agent-runtime continuation package",
+        "full-context": "larger agent-runtime discussion and onboarding package",
         "raw-plus-summary": "audit/debug traceability",
     }[profile]
     upload = ", ".join(name for name in files if name.endswith(".md") or name.endswith(".json"))
@@ -1295,6 +1332,7 @@ def build_index(
 - Missing optional inputs: {", ".join(missing) if missing else "None"}
 - Unresolved pointers: {", ".join(unresolved) if unresolved else "None"}
 - Redaction status: {"enabled" if redaction_enabled else "disabled"}
+- Runtime adapter outputs: generated `.codex/**` and generated `.claude/**` outputs are excluded by default; root runtime instruction surfaces are included only where this profile supports them.
 - How to use this package: upload the profile files relevant to your target context. Suggested upload set: {upload}
 """
 
@@ -1314,6 +1352,15 @@ def build_outputs(args: argparse.Namespace, repo_root: Path, output_root: Path) 
         if source is None:
             missing.append(BASE_FILES[target])
         outputs[target] = compact_source(source, target, target.removesuffix(".md").replace("-", " ").title())
+
+    if args.profile in {"handoff", "full-context", "raw-plus-summary"}:
+        for target in ROOT_RUNTIME_INSTRUCTION_FILES:
+            source = resolve_root_runtime_instruction(repo_root, target, sources)
+            if source is None:
+                if target not in OPTIONAL_ROOT_RUNTIME_INSTRUCTION_FILES:
+                    missing.append(ROOT_RUNTIME_INSTRUCTION_FILES[target])
+                continue
+            outputs[target] = compact_source(source, target, target.removesuffix(".md").replace("-", " ").title())
 
     state_source = source_from_repo(repo_root, ".planning/STATE.md", sources)
     roadmap_source = source_from_repo(repo_root, ".planning/ROADMAP.md", sources)
@@ -1421,6 +1468,7 @@ def build_outputs(args: argparse.Namespace, repo_root: Path, output_root: Path) 
         history,
     )
     outputs = redacted_nonmetadata
+    runtime = runtime_metadata(sources)
     outputs["source-index.json"] = json.dumps(source_index(args.profile, profile_version, sources, claims), indent=2) + "\n"
     outputs["git-status.txt"] = (
         f"current branch: {git.branch}\n"
@@ -1469,6 +1517,9 @@ def build_outputs(args: argparse.Namespace, repo_root: Path, output_root: Path) 
         "git_dirty": git.dirty,
         "vault_included": vault_included,
         "vault_project_id": vault_project_id,
+        "target_runtimes": runtime["target_runtimes"],
+        "runtime_surfaces_included": runtime["runtime_surfaces_included"],
+        "runtime_exclusion_policy": runtime["runtime_exclusion_policy"],
         "generated_files": all_files,
         "changed_sources": changed_sources,
         "changed_sources_without_rendered_output_change": source_changes_without_output_changes,
@@ -1501,6 +1552,8 @@ def build_outputs(args: argparse.Namespace, repo_root: Path, output_root: Path) 
         "git_branch": git.branch,
         "git_commit": git.commit,
         "git_dirty": git.dirty,
+        "target_runtimes": runtime["target_runtimes"],
+        "runtime_surfaces_included": runtime["runtime_surfaces_included"],
         "compaction_policy_version": COMPACTION_POLICY_VERSION,
         "redaction_policy_version": REDACTION_POLICY_VERSION,
         "content_fingerprint": fingerprint,

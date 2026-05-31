@@ -1,11 +1,11 @@
 ---
 name: gsd-export-project-context
-description: export a specific gsd-enabled project repository into a root-only portable context package for chatgpt project sources, codex or agent handoff, compacted workflow state, mapped repository understanding, selected work history, and scoped vault memory. use when the user needs project-specific context export, handoff, compacted state/history, vault-aware context packaging, or incremental project context updates.
+description: export a specific gsd-enabled project repository into a root-only portable context package for chatgpt project sources, agent-runtime handoff, compacted workflow state, mapped repository understanding, selected work history, and scoped vault memory. use when the user needs project-specific context export, handoff, compacted state/history, vault-aware context packaging, or incremental project context updates.
 ---
 
 # GSD Export Project Context
 
-Export a specific GSD-enabled project repository into a compact, root-only context package for ChatGPT Project sources, Codex or agent handoff, workflow continuation, scoped work history, and selected vault memory.
+Export a specific GSD-enabled project repository into a compact, root-only context package for ChatGPT Project sources, agent-runtime handoff, workflow continuation, scoped work history, and selected vault memory.
 
 ## Source Of Truth
 
@@ -17,7 +17,7 @@ Export a specific GSD-enabled project repository into a compact, root-only conte
 ## Profiles
 
 - `minimal`: small ChatGPT Project source package with core project, mapping, state, and vault context.
-- `handoff`: default Codex/agent continuation package with active milestone, active phase, latest verification, roadmap, and tool-capability context.
+- `handoff`: default agent-runtime continuation package with active milestone, active phase, latest verification, roadmap, tool-capability context, and root runtime instruction surfaces when present.
 - `full-context`: larger continuation package with milestone-grouped work history.
 - `raw-plus-summary`: audit/debug package with summaries plus selected raw source files flattened into the profile output root.
 
@@ -75,8 +75,11 @@ Defaults:
 - `source-index.json` maps sources and compacted claims to source references.
 - `export-lock.json` records profile-specific hashes and version state.
 - `export-manifest.json` records run metadata, source changes, changed sources that did not change rendered outputs, generated files, unresolved pointers, redaction status, and incremental behavior.
+- `export-manifest.json` records runtime-neutral metadata including `target_runtimes` and `runtime_surfaces_included`.
 - `checksums.sha256` covers every root-level output file except itself.
 - `git-status.txt` records branch, commit, dirty state, and `git status --short` when Git is available.
+- Generated project-local runtime adapter outputs such as `.codex/**` and generated `.claude/**` are excluded by default.
+- Root `CLAUDE.md` is included only for handoff, full-context, and raw-plus-summary profiles when present; generated `.claude/**` remains excluded.
 
 ## Incremental Rules
 
@@ -115,6 +118,9 @@ Defaults:
 - A no-change incremental run preserves `profile_version`.
 - A changed source increments `profile_version`.
 - Profile locks, manifests, source indexes, checksums, and git metadata are profile-specific.
+- Runtime metadata is present in `source-index.json` and `export-manifest.json`.
+- Generated `.codex/**` and generated `.claude/**` outputs are excluded by default.
+- Root `CLAUDE.md` appears only in handoff/full context profiles when present.
 - Vault inclusion is project-scoped.
 - Redaction runs by default.
 - Validation catches broken outputs before reporting success.

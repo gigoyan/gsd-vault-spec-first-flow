@@ -56,6 +56,7 @@ If `--base-export` is omitted in an incremental mode, fail clearly. Automatic pr
   - `templates.md`
   - `stack-profiles-<domain>.md` for each stack-profile domain with manifest-listed content
   - `agents.md`
+  - `claude.md` when root `CLAUDE.md` is present and manifest-listed
   - `project.md`
 - Always regenerate metadata files instead of copying them from the previous export.
 - `checksums.sha256` covers all final root-level export files except itself.
@@ -64,8 +65,8 @@ If `--base-export` is omitted in an incremental mode, fail clearly. Automatic pr
 
 - Generate root-level `index.md` for every export.
 - Explain that the package is a flattened ChatGPT Project representation, not the original repository layout.
-- Document the mapping from `.agents/skills/**/SKILL.md`, `.planning/templates/**`, `.agents/stack-profiles/**`, `AGENTS.md`, `PROJECT.md`, `.gsd/blueprint-manifest.json`, skipped child-agent configs, runtime planning history, and `.codex/**` to their export representation or skip reason.
-- Make clear that separate skill folders, template files, stack-profile folders, runtime planning files, project history, and generated `.codex` outputs are intentionally absent.
+- Document the mapping from `.agents/skills/**/SKILL.md`, `.planning/templates/**`, `.agents/stack-profiles/**`, `AGENTS.md`, `CLAUDE.md`, `PROJECT.md`, `.gsd/blueprint-manifest.json`, skipped child-agent configs, runtime planning history, `.codex/**`, and generated `.claude/**` to their export representation or skip reason.
+- Make clear that separate skill folders, template files, stack-profile folders, runtime planning files, project history, and generated runtime adapter outputs such as `.codex/**` and generated `.claude/**` are intentionally absent.
 
 ## Consolidation Rules
 
@@ -118,13 +119,14 @@ Markers must be balanced, deterministic, and unique within each target file. Inc
 ## Copy And Skip Rules
 
 - Copy `AGENTS.md` to root-level `agents.md`.
+- Copy `CLAUDE.md` to root-level `claude.md` when present and manifest-listed.
 - Copy `PROJECT.md` to root-level `project.md`.
 - Skip every other manifest source after recording a reason unless it belongs to a consolidation rule.
 - Never create export subdirectories.
 - Never copy source blueprint files into a subdirectory.
 - Never copy a broad `.planning/` directory.
 - Never copy `.planning/STATE.md`, `.planning/ROADMAP.md`, `.planning/CONTEXT_INDEX.md`, `.planning/milestones/**`, `.planning/phases/**`, `.planning/verification/**`, or `.planning/archive/**`.
-- Never copy generated project-local `.codex` outputs.
+- Never copy generated project-local runtime adapter outputs such as `.codex/**` and generated `.claude/**`.
 - Never copy files outside the repository root.
 - Never follow symlinks outside the repository root.
 - Consolidate supported text/code `.agents/skills/**/scripts/**` files into `skill-scripts.md`; do not list consolidated scripts as skipped.
@@ -194,7 +196,8 @@ Markers must be balanced, deterministic, and unique within each target file. Inc
 - `checksums.sha256` includes all final root-level export files except itself.
 - `checksums.sha256` includes `skill-scripts.md` when generated.
 - `agents.md` and `project.md` exist at the export root.
+- `claude.md` exists at the export root when root `CLAUDE.md` is present and manifest-listed.
 - No export subdirectories exist.
-- Runtime planning history and generated `.codex` outputs are not exported.
+- Runtime planning history and generated runtime adapter outputs such as `.codex/**` and generated `.claude/**` are not exported.
 - `export-manifest.json` records export mode, renderer version, generated index and lock files, incremental changes, fallback status, regenerated targets, and full-render verification result when requested.
 - Temporary validation output is removed when repository convention prefers no generated artifacts left behind.

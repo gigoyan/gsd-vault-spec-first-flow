@@ -63,5 +63,10 @@ These are dormant generation targets, not active repo skills yet.
 - `backend-debugger`
 - `api-framework-specialist`
 
-These should be generated later into project-local `.codex` outputs only after stack selection is complete.
-Use `output-manifest.toml` and the `project-local-*.template.toml` files in this folder as the source templates for those generated role files.
+These should be generated later into project-local runtime adapter outputs only after stack selection is complete.
+
+Supported runtime targets:
+- Codex: `.codex/agents/*.toml`
+- Claude Code: `.claude/agents/*.md`
+
+Use `output-manifest.toml` and the `project-local-*.template.*` files in this folder as the source templates for those generated role files.

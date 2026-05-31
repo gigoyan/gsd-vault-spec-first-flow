@@ -137,6 +137,7 @@ Presence is not enough. Audit must compare actual content whenever the ownership
 - Preserve all `GSD-PROJECT` blocks and other project-owned content byte-for-byte.
 - If markers are missing, report `marker insertion required`, show the proposed insertion or migration plan, and require approval.
 - Do not overwrite the whole file when project-owned content exists.
+- For `CLAUDE.md`, create the starter only when missing; when present, update only the `GSD-BLUEPRINT: claude-runtime-adapter` block after approval and preserve `GSD-PROJECT: claude-local-settings` plus all other project-owned content byte-for-byte.
 
 ### `bootstrap_if_missing`
 
@@ -159,7 +160,8 @@ Presence is not enough. Audit must compare actual content whenever the ownership
 - Do not compare.
 - Do not update.
 - Do not delete.
-- Examples include `.codex/config.toml` and `.codex/agents/*.toml`.
+- Examples include `.codex/**`, `.claude/settings.json`, `.claude/agents/**`, `.claude/skills/**`, `.claude/rules/**`, and `.claude/hooks/**`.
+- `CLAUDE.md` is not generated_project_local; handle it as `bootstrap_then_managed_block`.
 
 ## Removed Blueprint File Handling
 
@@ -191,11 +193,13 @@ Delete only when all are true:
 
 - the file was installed by previous Blueprint sync according to lock metadata;
 - the file is not `project_preserve`, an existing `bootstrap_if_missing` runtime file, or `generated_project_local`;
+- the file is not a generated runtime adapter output such as `.codex/**` or generated `.claude/**`;
 - the file has no target-local modifications compared with the installed lock hash/content when hash evidence exists;
 - local modification can be safely determined;
 - the user explicitly approves deletion.
 
 If local modification cannot be safely determined, preserve the file and report `conflict requiring manual review`.
+Never delete generated runtime adapter files such as `.codex/**` or generated `.claude/**` during removed-from-manifest cleanup, even if they appear in old lock metadata, unless the user explicitly approves a separate runtime-output cleanup task.
 Never delete project runtime/history artifacts, generated project-local files, managed-block host files, bootstrap/project surfaces, user documents, wildcard paths, or target files never recorded in the lock.
 After approved safe deletes, remove empty parent directories only inside strict Blueprint-owned namespaces such as `.agents/skills/<removed-skill>/`, and never remove non-empty directories.
 
@@ -244,6 +248,7 @@ Only after explicit approval:
    - create missing `bootstrap_if_missing` files;
    - delete approved removed-from-manifest candidates.
 4. Preserve every project-owned/runtime file and generated project-local output exactly.
+   Generated runtime adapter outputs such as `.codex/**` and generated `.claude/**` must remain preserved.
 5. Stop if a file changed since audit in a way that invalidates the plan.
 6. Update or create `.gsd/blueprint.lock.json` only after approved writes and deletes succeed.
 7. Run lightweight verification.
@@ -303,6 +308,8 @@ Run lightweight checks after approved sync:
 - only approved deletions were applied;
 - project-owned/runtime files were preserved;
 - generated project-local files were untouched;
+- generated `.codex/**` and generated `.claude/**` runtime adapter outputs were untouched;
+- `CLAUDE.md` project-owned content was preserved when its blueprint block was created or updated;
 - managed block markers are balanced in changed mixed files;
 - `.gsd/blueprint.lock.json` was updated only after successful approved sync.
 

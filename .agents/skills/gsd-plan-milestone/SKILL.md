@@ -1,6 +1,6 @@
 ---
 name: gsd-plan-milestone
-description: Turn the next meaningful goal into one milestone file and one bounded execution phase inside the Codex-native GSD workflow. Use when work is too large for a quick task, spans multiple files, changes behavior, or needs explicit acceptance criteria and verification planning.
+description: Turn the next meaningful goal into one milestone file and one bounded execution phase inside the GSD coding-agent workflow. Use when work is too large for a quick task, spans multiple files, changes behavior, or needs explicit acceptance criteria and verification planning.
 ---
 
 # GSD Plan Milestone
@@ -63,7 +63,7 @@ Standalone planning and normal delegated planning remain planning-only.
 - In the composite step, do not create a replacement milestone unless the existing planning rules already require that outcome.
 - In the composite step, do not execute or verify anything after creating the next phase.
 - When invoked as a delegated child under `$gsd-run-milestone` without the explicit composite assignment, perform planning only. Do not orchestrate, do not delegate, and do not continue into execution or verification.
-- As a delegated child, do not call `spawn_agent`, `send_input`, `wait_agent`, or `close_agent`.
+- As a delegated child, do not spawn, delegate to, message, wait for, close, or orchestrate other agents. Only the root orchestrator may manage delegated agents.
 - Define the validation strategy and minimum sufficient validation set before implementation. Prefer the most relevant available test level: unit, integration, API or contract, regression, characterization, or smoke or manual fallback when automation is impractical.
 - Specify the first decisive failing check and any additional tests or checks needed for the behavior slice, or record the closest realistic safeguard when test-first is impractical. Do not require oversized speculative test batches.
 - Tie milestone acceptance criteria and phase done criteria to validated behavior so `$gsd-verify-phase` can verify the slice from explicit evidence.

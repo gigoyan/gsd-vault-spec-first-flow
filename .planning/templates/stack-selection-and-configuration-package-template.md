@@ -8,7 +8,7 @@ Use [`.planning/templates/stack-profile-contract.md`](./stack-profile-contract.m
 ## Purpose
 - Select the project stack in a structured way.
 - Capture the inputs needed to generate the current project's configuration package after selection is complete.
-- Do not ship prefilled `.codex/config.toml` or `.codex/agents/*.toml` as part of a reusable GSD package; generate them only when the current project is ready.
+- Do not ship prefilled runtime adapter outputs such as `.codex/**`, generated `.claude/**`, or `CLAUDE.md` as part of a reusable GSD stack-selection package; generate or bootstrap runtime surfaces only in a later bounded runtime-adapter step when the current project is ready.
 
 ## Readiness Gate
 - Related Project Idea Document:
@@ -152,29 +152,47 @@ Capture the inputs required for project-local configuration generation once stac
   - The absolute Obsidian vault root is configured outside reusable GSD artifacts.
   - Do not generate one MCP server per project unless the user explicitly overrides the shared-root model.
 
+## Runtime Adapter Targets
+Capture runtime target decisions without generating runtime outputs during stack selection.
+
+- Target runtime(s): `codex` | `claude_code` | `both`
+- Primary runtime:
+- Generate Codex outputs later: `yes` | `no`
+- Generate Claude Code outputs later: `yes` | `no`
+- Runtime-specific constraints:
+  - Codex:
+  - Claude Code:
+- Disabled runtime outputs:
+- Deferred generation follow-up:
+- Evidence status:
+- Source or rationale:
+
 ## Context Index Impact
 - Does selected stack change expected structure, commands, validation strategy, generated project-local outputs, or runtime surfaces:
 - Context-index action: `none` | `create` | `refresh`
 - Recommended `$gsd-map-codebase` unified mapping scope:
 - Notes:
 
-## Project-Local `.codex` Generation Checklist
+## Project-Local Runtime Adapter Generation Checklist
 Use this only after the stack domains and configuration-package inputs above are complete.
 
 - Confirm generation happens inside the current project's local runtime copy, not inside a reusable source package.
-- Confirm the selected stack, stack-aware Technical Specification, runtime environments, and review constraints are current enough to generate project-local `.codex/config.toml` and `.codex/agents/*.toml`.
+- Confirm the selected stack, stack-aware Technical Specification, runtime environments, runtime adapter targets, and review constraints are current enough to generate project-local runtime adapter outputs.
 - Confirm the selected curated profile manifests and template assets were the sources for generated project-local outputs.
 - When delegated child agents are used, rely on the runtime default latest available supported child-agent model unless the current project explicitly selects a concrete child model override. Record explicit project-level overrides in generated project-local configuration.
 - Generate only the project-local files the current project actually needs; do not create placeholder roles or unsupported config fields.
 - Keep generated role prompts and permissions aligned with bounded-child orchestration and conservative reviewer defaults unless the current project explicitly overrides them.
-- If schema details are needed, verify them narrowly from official Codex or OpenAI guidance at generation time.
+- If schema details are needed, verify them narrowly from official runtime guidance at generation time.
 - Review generated files against the current Project Idea Document, Technical Specification, and this completed stack-selection artifact before adoption.
 
 ## Project-Local Output Rule
-- Generate `.codex/config.toml` and `.codex/agents/*.toml` only after the stack decisions above and the stack-aware Technical Specification are complete enough to support safe project-local generation.
-- Generate those files only inside the current project's local runtime copy.
-- Do not treat `.codex` as the main blueprint documentation surface or as durable memory.
-- Do not generate project-local `.codex/config.toml` entries that point MCPVault directly to `projects/<vault-project-id>/` when the shared-root model is active. The MCP server should point to the shared Obsidian root; GSD skills must scope reads and writes to the project namespace.
+- Generate runtime adapter outputs only after the stack decisions above and the stack-aware Technical Specification are complete enough to support safe project-local generation.
+- Generate runtime adapter outputs only inside the current project's local runtime copy.
+- Codex outputs may include `.codex/config.toml` and `.codex/agents/*.toml`.
+- Claude Code outputs may include generated `.claude/settings.json`, `.claude/agents/*.md`, and `.claude/skills/**`.
+- Do not generate root `CLAUDE.md` from stack-selection data. `CLAUDE.md` is a root bootstrap-then-managed-block adapter surface handled by the global runtime adapter workflow.
+- Do not treat `.codex/**` or generated `.claude/**` as the main blueprint documentation surface or as durable memory.
+- Do not generate project-local runtime adapter config entries that point MCPVault directly to `projects/<vault-project-id>/` when the shared-root model is active. The MCP server should point to the shared Obsidian root; GSD skills must scope reads and writes to the project namespace.
 
 ## Open Questions
 - Remaining `Unknown` decision gaps:

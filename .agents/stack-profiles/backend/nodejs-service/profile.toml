@@ -90,7 +90,7 @@ documentation_baseline = [
 ]
 
 selection_prompt = "Select the Node.js backend profile options that match the project's delivery needs."
-selection_help = "The choices below control how the Node.js service is authored, structured, validated, and later specialized for Codex."
+selection_help = "The choices below control how the Node.js service is authored, structured, validated, and later specialized for the selected agent runtime."
 comparison_rules = [
   "Prefer the simplest option that matches the expected service size and team skill",
   "Choose hexagonal only when adapter boundaries and long-term swapability matter enough to justify extra ceremony",
@@ -126,7 +126,7 @@ suggested_convention_ids = [
 override_prompt = "If the project needs TypeScript, Express middleware compatibility, a worker-only runtime, or multiple packages, confirm the override explicitly instead of silently dropping the recommendation."
 deferred_follow_on = [
   "Later freshness review can re-check the current Node.js, Fastify, and npm guidance",
-  "Later project-local generation can derive AGENTS and .codex overlays from the confirmed options"
+  "Later project-local generation can derive runtime instruction and adapter overlays from the confirmed options"
 ]
 
 [[recommendation_sets.recommended_axis_options]]
@@ -260,7 +260,7 @@ skill_outputs = [
   "node-express-routes"
 ]
 config_outputs = [
-  "project-local codex config for default verification commands",
+  "project-local runtime adapter config for default verification commands",
   "project-local role overlays for backend implementation and review",
   "optional per-framework role overlays"
 ]

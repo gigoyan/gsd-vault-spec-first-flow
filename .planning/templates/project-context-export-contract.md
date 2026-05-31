@@ -11,9 +11,16 @@ Each export profile directory contains files only and no generated subdirectorie
 
 ## Profiles
 - minimal
-- handoff
-- full-context
+- handoff: agent-runtime handoff / agent-runtime continuation package
+- full-context: agent-runtime continuation package with broader work history
 - raw-plus-summary
+
+## Runtime Adapter Boundaries
+- Generated project-local runtime adapter outputs are excluded by default.
+- Excluded generated runtime outputs include `.codex/**` and generated `.claude/**`, including `.claude/settings.json`, `.claude/agents/**`, `.claude/skills/**`, `.claude/rules/**`, and `.claude/hooks/**`.
+- Root `CLAUDE.md` is a project-facing runtime adapter surface, not generated `.claude/**`.
+- Include root `CLAUDE.md` only in handoff, full-context, and raw-plus-summary profiles when present; do not include generated `.claude/**` by default.
+- `source-index.json` and `export-manifest.json` should record runtime-neutral metadata such as `target_runtimes` and `runtime_surfaces_included` when the exporter supports it.
 
 ## Versioning
 Each profile has independent `profile_version`, `export-lock.json`, `export-manifest.json`, `source-index.json`, and `checksums.sha256`.

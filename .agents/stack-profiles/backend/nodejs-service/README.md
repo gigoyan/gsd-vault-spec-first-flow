@@ -16,7 +16,9 @@ Use it after the current project has:
 - `assets/project-structure-examples.md`: example layouts and code-style examples for user selection
 - `assets/generated-skills-manifest.md`: recommended generated skills and role surfaces
 - `assets/output-manifest.toml`: machine-readable map from selected options to project-local output targets
-- `assets/project-local-*.template.toml`: source templates for generated project-local `.codex` config and custom-agent files
+- `assets/project-local-*.template.*`: source templates for generated project-local runtime adapter files, including Codex `.codex/**` outputs and Claude Code `.claude/**` outputs
+- `assets/project-local-claude-settings.template.json`: source template for generated Claude Code project settings
+- `assets/project-local-claude-agent-*.template.md`: source templates for generated Claude Code subagent files
 
 ## Scope
 - Backend services, APIs, webhooks, and background jobs running on Node.js
