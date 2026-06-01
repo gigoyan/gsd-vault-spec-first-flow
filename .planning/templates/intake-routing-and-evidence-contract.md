@@ -5,10 +5,16 @@ Use it to keep later skills, templates, and verification behavior aligned withou
 
 ## Intake Route Classification
 - `placeholder_bootstrap`: use when the repo is new, effectively empty, or still on placeholder planning surfaces. Route to `$gsd-new-project`.
-- `document_first_intake`: use when the user supplies substantial docs, notes, or files that can answer bootstrap or Spec-First questions. Extract from those materials before re-asking.
+- `document_first_intake`: use when the user supplies substantial docs, notes, or files that can answer bootstrap or Spec-First questions. Register repository-relative files or directories through `$gsd-register-source-materials` when they need to become project evidence, then extract relevant claims into project/spec artifacts before re-asking.
 - `existing_project_mapping`: use when the repo already contains meaningful code and the need is factual onboarding, stale mapping repair, serious full mapping, transformation-oriented mapping, or context-index routing refresh. Route to the unified `$gsd-map-codebase` mapping orchestrator.
 - `explicit_stack_selection`: use when the user explicitly asks to choose or confirm the stack. Route to `$gsd-select-stack` using repo evidence first.
 - `partial_maturity_continuation`: use when some project artifacts already exist but are incomplete, stale, or unevenly mature. Continue from the highest valid readiness point instead of restarting earlier steps.
+
+## Source-Material Boundary
+- `$gsd-register-source-materials` owns source-material classification, custody, provenance, registry initialization, registry maintenance, claim indexing, conflicts/unknowns, and downstream consumption logging under `.planning/source-materials/`.
+- Document-first intake owns consuming registered materials and extracting only relevant claims into project/spec artifacts such as `PROJECT.md`, `.planning/REQUIREMENTS.md`, Project Idea Documents, Technical Specifications, stack-selection artifacts, milestones, phases, and verification outputs.
+- Do not duplicate the source-material registry inside intake or spec artifacts. Cite registered `source_id` values and stable anchors when source-backed claims are carried forward.
+- If material is already stable repo evidence and does not need durable source-material treatment, intake may use it directly as repo evidence. If user-supplied material should govern, inform, or evidence future work, register it first.
 
 ## Evidence Statuses
 - `Confirmed`: backed by direct repo evidence, supplied materials, or an explicit user decision. Treat as factual input.

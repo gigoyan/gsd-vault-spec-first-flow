@@ -25,3 +25,5 @@ Verification commands for this project:
 {{verification_commands}}
 
 Do not weaken validation boundaries, thin-handler rules, environment-variable boundaries, or non-blocking request-path requirements.
+
+Do not spawn, delegate to, message, wait for, close, or orchestrate other agents. Only the root orchestrator may manage delegated agents.

@@ -177,6 +177,13 @@
       "description": "Quick task child-agent configuration."
     },
     {
+      "path": ".agents/skills/gsd-register-source-materials/SKILL.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Source material registration skill instructions."
+    },
+    {
       "path": ".agents/skills/gsd-run-milestone/SKILL.md",
       "owner": "blueprint_replace",
       "sync_strategy": "replace",
@@ -539,6 +546,20 @@
       "sync_strategy": "replace",
       "required": true,
       "description": "Roadmap template."
+    },
+    {
+      "path": ".planning/templates/source-materials-contract.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Source materials registry and handling contract."
+    },
+    {
+      "path": ".planning/templates/source-materials-registry-template.md",
+      "owner": "blueprint_replace",
+      "sync_strategy": "replace",
+      "required": true,
+      "description": "Source materials registry starter template."
     },
     {
       "path": ".planning/templates/stack-profile-contract.md",

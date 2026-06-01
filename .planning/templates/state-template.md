@@ -14,6 +14,9 @@
   - Status: `missing` | `placeholder` | `current` | `partial` | `stale`
   - Last consulted:
   - Refresh follow-up: `none` | `candidate: <why>`
+- Source materials registry:
+  - Status: `missing` | `not-needed` | `current` | `partial` | `stale`
+  - Follow-up: `none` | `candidate: <why>`
 - Durable-memory follow-up:
   - Record `candidate: <note kind + why>` or `none`.
   - Do not store the durable content itself in state.

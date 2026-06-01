@@ -11,10 +11,11 @@
 
 ## Steps
 1. Read `.planning/CONTEXT_INDEX.md` when available and identify the narrowest relevant routing row or module card before scanning source files.
-2. Define the minimum sufficient validation set for this behavior slice.
-3. Update the required tests or checks first when practical.
-4. Implement the minimum change needed to satisfy that validation.
-5. If the phase produces durable insight, leave a session-save candidate for later instead of writing memory here.
+2. If `.planning/source-materials/SOURCE_MATERIALS.md` exists and the milestone or phase cites source-backed claims, consume the relevant registry claim IDs and `source_id#anchor` references instead of broad-scanning raw source-material folders.
+3. Define the minimum sufficient validation set for this behavior slice.
+4. Update the required tests or checks first when practical.
+5. Implement the minimum change needed to satisfy that validation.
+6. If the phase produces durable insight, leave a session-save candidate for later instead of writing memory here.
 
 ## Constraints
 - C1:
@@ -36,9 +37,24 @@
 - Validation path:
 - Refresh needed before execution: `yes` | `no` | `unknown`
 
+## Source Traceability
+- Registry consulted: `yes` | `no` | `not-present`
+- Registry path: `.planning/source-materials/SOURCE_MATERIALS.md`
+- Consumption rule: cite compact `source_id`, claim IDs, anchors, and evidence statuses; do not duplicate registry rows or copy raw source bodies.
+
+| Applies To | source_id | claim_id | anchor | evidence_status | Execution use | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| behavior slice |  |  |  | `Confirmed` |  |  |
+| constraint |  |  |  | `Suggested` | Treat as suggested until confirmed. |  |
+| risk or gap |  |  |  | `Unknown` | Do not implement as authority. |  |
+
+- Source conflicts or unknowns affecting execution:
+- Registry consumption-log follow-up needed after planning or verification: `yes` | `no` | `unknown`
+
 ## Implementation Notes
 - Concrete instructions, examples, or sequencing notes needed to execute this phase without guesswork.
 - When the phase relies on repo evidence, recommendations, or unresolved gaps, keep them labeled as `Confirmed`, `Suggested`, or `Unknown` instead of flattening them into certainty.
+- When the phase relies on registered source material, preserve the source claim evidence status; do not turn a `Suggested` claim into a `Confirmed` requirement during execution.
 
 ## Test-First Validation
 - Primary test level:
@@ -55,6 +71,7 @@
 - DC3: Validated behavior satisfies the milestone acceptance criteria with evidence suitable for verification.
 - DC4: Phase-specific constraints and implementation notes were respected, or any necessary deviation was escalated for replanning.
 - DC5: Context routing was followed or a justified exception was recorded when the context index was missing, stale, or insufficient.
+- DC6: Source traceability was followed when present, with `Suggested` and `Unknown` claims preserved as non-authoritative unless later confirmed.
 
 ## Post-Verification Routing
 - In standalone verification, if this phase passes and the milestone is incomplete, the next action should be `$gsd-plan-milestone` for the next bounded phase in the same milestone.

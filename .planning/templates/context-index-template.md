@@ -6,7 +6,7 @@ This artifact is the primary coding-agent navigation guide for a repository. It 
 Keep it compact, task-routing oriented, and evidence-based. Prefer paths, symbols, canonical examples, commands, validation routes, and do-not-touch boundaries over narrative explanation.
 
 ## Purpose
-- Help Codex choose the smallest useful context for a task.
+- Help coding agents choose the smallest useful context for a task.
 - Tell planning, execution, verification, quick-task, mapping, and milestone orchestration skills where to start.
 - Capture how agents should work safely in this repo.
 - Reduce repeated repository discovery.

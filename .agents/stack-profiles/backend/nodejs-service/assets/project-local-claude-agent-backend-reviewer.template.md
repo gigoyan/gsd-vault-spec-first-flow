@@ -29,3 +29,5 @@ Prioritize findings that affect:
 
 Verification commands to expect:
 {{verification_commands}}
+
+Do not spawn, delegate to, message, wait for, close, or orchestrate other agents. Only the root orchestrator may manage delegated agents.

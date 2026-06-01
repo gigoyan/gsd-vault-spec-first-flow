@@ -34,6 +34,9 @@ Each profile has independent `profile_version`, `export-lock.json`, `export-mani
 ## Source Reference Rule
 Every compacted claim must reference source paths or be marked `Unknown`. Claims in `source-index.json` must be short, sanitized labels or summaries; they must not contain full source or vault note bodies.
 
+## Source Materials Rule
+When `.planning/source-materials/SOURCE_MATERIALS.md` exists, exports may include compact registry status, sanitized material labels, evidence status, and traceability references in `source-index.json`. Do not copy raw source bodies, sensitive material, large binaries, licensed content, `.planning/source-materials/materials/**`, or `.planning/source-materials/extracts/**` into project-context export outputs.
+
 ## Vault Rule
 Only read the active project namespace. Never read sibling namespaces. Select current priorities, directly referenced notes, relevant atlas notes, and knowledge notes matching active-work keywords; do not perform broad vault dumps.
 

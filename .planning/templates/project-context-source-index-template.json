@@ -12,8 +12,35 @@
         "state-snapshot.md"
       ],
       "status": "included"
+    },
+    {
+      "source_id": "repo:.planning/source-materials/SOURCE_MATERIALS.md",
+      "source_type": "source_material_registry",
+      "path": ".planning/source-materials/SOURCE_MATERIALS.md",
+      "hash": "",
+      "included_in": [
+        "source-index.json"
+      ],
+      "status": "metadata_only",
+      "notes": "Include compact registry status and traceability only; do not copy raw registered material bodies or runtime source-material files."
     }
   ],
+  "source_materials": {
+    "registry_status": "missing",
+    "evidence_status_values": [
+      "Confirmed",
+      "Suggested",
+      "Unknown"
+    ],
+    "materials": [
+      {
+        "material_id": "",
+        "label": "compact sanitized label only",
+        "evidence_status": "Unknown",
+        "source_refs": []
+      }
+    ]
+  },
   "claims": [
     {
       "claim_id": "state.current_phase",

@@ -17,11 +17,28 @@
 - Confirmed:
   - User-confirmed requirements:
   - Repo evidence and current constraints:
+  - Registered source-material claims:
   - Concrete examples or fixed rules to preserve:
 - Suggested:
   - Recommended milestone framing, sequencing, or implementation direction that still needs confirmation:
+  - Source-backed suggestions that are not confirmed requirements:
 - Unknown:
   - Open scope, dependency, or readiness gaps that still need confirmation:
+  - Source-material conflicts, missing anchors, or unclear applicability:
+
+## Source Traceability
+- Registry consulted: `yes` | `no` | `not-present`
+- Registry path: `.planning/source-materials/SOURCE_MATERIALS.md`
+- Consumption rule: cite compact `source_id`, claim IDs, anchors, and evidence statuses; do not duplicate registry rows or copy raw source bodies.
+
+| Use | source_id | claim_id | anchor | evidence_status | Downstream status | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| scope |  |  |  | `Confirmed` | `Confirmed` |  |
+| criterion |  |  |  | `Suggested` | `Suggested` | Keep suggested claims out of confirmed requirements until confirmed. |
+| gap |  |  |  | `Unknown` | `Unknown` |  |
+
+- Conflicts or unknowns from registry:
+- Registry consumption-log follow-up needed: `yes` | `no` | `unknown`
 
 ## Context Routing
 - Context index status:
@@ -64,6 +81,7 @@
 - Record concrete instructions, examples, or sequencing constraints that later phases must preserve.
 - Include file or artifact targets when already known.
 - Keep recommendations and inferred sequencing visibly `Suggested` until stronger evidence or explicit confirmation makes them `Confirmed`.
+- Keep source-backed recommendations visibly `Suggested` unless the registry claim is confirmed and the downstream requirement is also confirmed by user decision or stronger evidence.
 - Use `.planning/CONTEXT_INDEX.md` to keep later phase execution and verification scoped to the smallest relevant file set.
 
 ## Planned Phases
@@ -76,6 +94,7 @@
 - Objective:
 - Scope boundary:
 - Expected touched areas:
+- Source traceability:
 - First validation:
 - Key implementation notes:
 - Exit condition:

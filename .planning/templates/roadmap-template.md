@@ -5,6 +5,7 @@
 - Current phase:
 - Memory-aware context pack:
 - Context index status:
+- Source materials registry status:
 
 ## Milestones
 | ID | Name | Status | Goal | Dependencies |
@@ -15,3 +16,4 @@
 - Keep the roadmap repo-local; if a phase needs prior durable context, use `gsd-memory-lookup` rather than turning roadmap state into memory.
 - If a phase needs prior durable context, use `gsd-memory-lookup` scoped to the active project namespace from `PROJECT.md`; do not record vault paths in the roadmap.
 - Use `.planning/CONTEXT_INDEX.md` to keep milestone and phase routing narrow. Do not turn roadmap state into a repository map or file inventory.
+- Keep source-material references compact; preserve `Confirmed`, `Suggested`, and `Unknown` evidence semantics without copying raw source bodies into the roadmap.

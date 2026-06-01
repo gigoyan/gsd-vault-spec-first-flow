@@ -29,3 +29,5 @@ Focus on:
 
 Use these verification commands when they exist:
 {{verification_commands}}
+
+Do not spawn, delegate to, message, wait for, close, or orchestrate other agents. Only the root orchestrator may manage delegated agents.
